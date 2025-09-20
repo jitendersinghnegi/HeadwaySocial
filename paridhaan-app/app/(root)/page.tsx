@@ -1,5 +1,5 @@
 const Homepage = () => {
-  return (<>Paridhaan</>  );
+  return (<></>);
 }
  
 export default Homepage;
