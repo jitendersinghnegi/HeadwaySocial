@@ -1,4 +1,4 @@
-package headway.backend.user;
+package headway.backend.entity.user;
 
 public enum Role {
     USER,
