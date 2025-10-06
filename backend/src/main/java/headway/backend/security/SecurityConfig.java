@@ -2,8 +2,10 @@ package headway.backend.security;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
+import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -19,7 +21,7 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 public class SecurityConfig {
 
     @Bean
-    public PasswordEncoder passwordEncoder(){
+    public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
 
@@ -28,11 +30,24 @@ public class SecurityConfig {
         CorsConfiguration config = new CorsConfiguration();
         config.setAllowCredentials(true);
         config.setAllowedOrigins(java.util.List.of("http://localhost")); //change this later as per production url
-        config.setAllowedMethods(java.util.List.of("GET","POST","PUT","DELETE","OPTIONS"));
-        config.setAllowedHeaders(java.util.List.of("Authorization","Content-Type"));
+        config.setAllowedMethods(java.util.List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        config.setAllowedHeaders(java.util.List.of("Authorization", "Content-Type"));
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", config);
         return source;
+    }
+    @Bean
+    SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+         http.csrf(AbstractHttpConfigurer::disable) // for stateless APIs; see CSRF note below
+                 .authorizeHttpRequests(auth -> auth
+                        .requestMatchers("/actuator/health", "/public/**", "/api/v1/**").permitAll()
+                         .anyRequest().authenticated()
+                )
+                .httpBasic(Customizer.withDefaults()); // or use JWT (see below)
+
+         return http.build();
+
+
     }
 
 }
