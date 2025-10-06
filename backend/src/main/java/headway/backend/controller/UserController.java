@@ -1,4 +1,4 @@
-package headway.backend.usercontroller;
+package headway.backend.controller;
 
 import headway.backend.dto.UserDTO;
 import headway.backend.service.UserService;

@@ -40,7 +40,7 @@ public class SecurityConfig {
     SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
          http.csrf(AbstractHttpConfigurer::disable) // for stateless APIs; see CSRF note below
                  .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/actuator/health", "/public/**", "/api/v1/**").permitAll()
+                        .requestMatchers("/actuator/health", "/public/**", "/api/v1/user/register").permitAll()
                          .anyRequest().authenticated()
                 )
                 .httpBasic(Customizer.withDefaults()); // or use JWT (see below)
