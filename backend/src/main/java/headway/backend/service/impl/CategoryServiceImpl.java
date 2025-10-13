@@ -39,12 +39,15 @@ public class CategoryServiceImpl implements CategoryService {
      */
     @Override
     public String deleteCategory(Long categoryId) {
-        List<Category> categories = categoryRepository.findAll();
-        Category category = categories.stream().filter(c -> c.getCategoryId().equals(categoryId)).findFirst()
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,"Resource Not Found"));
-
-        categoryRepository.delete(category);
-        return "Category with category Id:" + categoryId +"deleted";}
+        Optional<Category> optionalCategory = categoryRepository.findById(categoryId);
+        if(optionalCategory.isPresent()){
+            Category category = optionalCategory.get();
+            categoryRepository.delete(category);
+            return "Category with category Id:" + categoryId +"deleted";
+        }else{
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND,"Resource Not Found");
+        }
+    }
 
     /**
      * @param category
@@ -53,8 +56,9 @@ public class CategoryServiceImpl implements CategoryService {
      */
     @Override
     public Category updateCategory(CategoryDTO category, Long categoryId) {
-        List<Category> categories = categoryRepository.findAll();
-        Optional<Category> optionalCategory = categories.stream().filter(c -> c.getCategoryId().equals(categoryId)).findFirst();
+        Optional<Category> optionalCategory = categoryRepository.findById(categoryId);
+        //List<Category> categories = categoryRepository.findAll();
+        //Optional<Category> optionalCategory = categories.stream().filter(c -> c.getCategoryId().equals(categoryId)).findFirst();
         if(optionalCategory.isPresent()){
             Category existingCategory = optionalCategory.get();
             existingCategory.setCategoryName(category.getCategoryName());
