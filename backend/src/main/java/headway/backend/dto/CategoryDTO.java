@@ -2,10 +2,7 @@ package headway.backend.dto;
 
 public class CategoryDTO {
     private Long categoryId;
-
-    public Long getCategoryId() {
-        return categoryId;
-    }
+    private String categoryName;
 
     public CategoryDTO() {
     }
@@ -15,6 +12,9 @@ public class CategoryDTO {
         this.categoryName = categoryName;
     }
 
+    public Long getCategoryId() {
+        return categoryId;
+    }
     public void setCategoryId(Long categoryId) {
         this.categoryId = categoryId;
     }
@@ -27,5 +27,11 @@ public class CategoryDTO {
         this.categoryName = categoryName;
     }
 
-    private String categoryName;
+    @Override
+    public String toString() {
+        return "CategoryDTO{" +
+                "categoryId=" + categoryId +
+                ", categoryName='" + categoryName + '\'' +
+                '}';
+    }
 }

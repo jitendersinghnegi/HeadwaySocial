@@ -1,7 +1,6 @@
 package headway.backend.dto;
 
 import headway.backend.entity.user.Role;
-import jakarta.persistence.*;
 
 public class UserDTO {
 
