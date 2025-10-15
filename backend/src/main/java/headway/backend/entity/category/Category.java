@@ -2,6 +2,7 @@ package headway.backend.entity.category;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -9,7 +10,7 @@ import lombok.NoArgsConstructor;
 @Table(name = "Categories")
 @Data
 @NoArgsConstructor
-@AllArgsConstructor
+@AllArgsConstructor @Builder
 public class Category {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

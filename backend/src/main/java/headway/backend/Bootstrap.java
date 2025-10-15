@@ -18,18 +18,18 @@ public class Bootstrap {
     CommandLineRunner seed(UserRepository users){
        return args -> {
            if (users.count()==0){
-               User user = new User();
+                /*User user = new User();
                user.setRole(Role.ADMIN);
                user.setPassword(this.passwordEncoder.encode("LKMKC"));
                user.setEmail("laudalassan@lyreco.com");
                user.setUserName("GregChutiya");
-               users.save(user);
-              /* users.save(User.builder()
+               users.save(user);*/
+              users.save(User.builder()
                        .userName("admin")
                        .email("jeet.sujanian@gmail.com")
-                       .password("LKMKC")
+                       .password(this.passwordEncoder.encode("LKMKC"))
                        .role(Role.ADMIN)
-                       .build());*/
+                       .build());
            }
        };
     }
