@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8" />
+    <style>
+        body {
+            font-family: 'Segoe UI', Roboto, Arial, sans-serif;
+            background-color: #f8f9fa;
+            color: #333;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            background: white;
+            border-radius: 10px;
+            margin: 40px auto;
+            padding: 30px;
+            max-width: 600px;
+            box-shadow: 0 3px 8px rgba(0,0,0,0.1);
+        }
+        h2 {
+            color: #2563EB;
+            border-bottom: 1px solid #e5e5e5;
+            padding-bottom: 8px;
+        }
+        p {
+            font-size: 15px;
+            line-height: 1.5;
+        }
+        .footer {
+            margin-top: 30px;
+            font-size: 12px;
+            color: #999;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h2>New Contact Enquiry</h2>
+    <p><strong>Name:</strong> <span th:text="${name}">John Doe</span></p>
+    <p><strong>Email:</strong> <a th:href="'mailto:' + ${email}" th:text="${email}">john@example.com</a></p>
+    <p><strong>Message:</strong></p>
+    <p th:text="${message}">Message content here</p>
+    <div class="footer">
+        <p>Sent automatically from the Headway Social website contact form.</p>
+    </div>
+</div>
+</body>
+</html>
