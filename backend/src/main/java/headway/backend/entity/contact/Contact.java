@@ -1,6 +1,7 @@
 package headway.backend.entity.contact;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -18,9 +19,19 @@ public class Contact {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
+    @NotBlank
+    @NotNull
+    @NotEmpty
     private String name;
+    @Email
+    @NotNull
+    @NotEmpty
+    @NotBlank
     private String email;
+    @NotNull
+    @NotEmpty
+    @NotBlank
+    @Size(min=10,message = "Message must contain atleast 10 characters")
     private String message;
     private LocalDateTime createdAt = LocalDateTime.now();
 }

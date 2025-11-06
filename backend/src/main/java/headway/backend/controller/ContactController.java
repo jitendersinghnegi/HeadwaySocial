@@ -2,6 +2,7 @@ package headway.backend.controller;
 
 import headway.backend.dto.ContactDTO;
 import headway.backend.service.ContactService;
+import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -17,7 +18,7 @@ public class ContactController {
         this.contactService = contactService;
     }
     @PostMapping
-    public ResponseEntity<?> receiveContact(@RequestBody ContactDTO request) {
+    public ResponseEntity<?> receiveContact(@Valid @RequestBody ContactDTO request) {
         try {
             contactService.processContact(request);
             return ResponseEntity.ok(Map.of("success", true));

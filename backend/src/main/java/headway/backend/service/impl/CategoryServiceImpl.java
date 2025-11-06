@@ -2,6 +2,8 @@ package headway.backend.service.impl;
 
 import headway.backend.dto.CategoryDTO;
 import headway.backend.entity.category.Category;
+import headway.backend.exceptions.APIException;
+import headway.backend.exceptions.ResourceNotFoundException;
 import headway.backend.repo.CategoryRepository;
 import headway.backend.service.CategoryService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,7 +20,11 @@ public class CategoryServiceImpl implements CategoryService {
     private CategoryRepository categoryRepository;
     @Override
     public List<Category> getAllCategories() {
-        return categoryRepository.findAll();
+        List<Category> categories =  categoryRepository.findAll();
+        if(categories.isEmpty()){
+            throw new APIException("No categories found");
+        }
+        return categories;
     }
 
     /**
@@ -27,6 +33,10 @@ public class CategoryServiceImpl implements CategoryService {
      */
     @Override
     public Void createCategory(CategoryDTO category) {
+        Category savedCategory = categoryRepository.findByCategoryName(category.getCategoryName());
+        if(savedCategory != null){
+            throw new APIException("Category with name "+category.getCategoryName() + "alreadt exists !!!!!!");
+        }
         Category categoryTemp = new Category();
         categoryTemp.setCategoryName(category.getCategoryName());
         categoryRepository.save(categoryTemp);
@@ -45,7 +55,7 @@ public class CategoryServiceImpl implements CategoryService {
             categoryRepository.delete(category);
             return "Category with category Id:" + categoryId +"deleted";
         }else{
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND,"Resource Not Found");
+            throw new ResourceNotFoundException("Category","CategoryId",categoryId);
         }
     }
 
@@ -57,14 +67,12 @@ public class CategoryServiceImpl implements CategoryService {
     @Override
     public Category updateCategory(CategoryDTO category, Long categoryId) {
         Optional<Category> optionalCategory = categoryRepository.findById(categoryId);
-        //List<Category> categories = categoryRepository.findAll();
-        //Optional<Category> optionalCategory = categories.stream().filter(c -> c.getCategoryId().equals(categoryId)).findFirst();
         if(optionalCategory.isPresent()){
             Category existingCategory = optionalCategory.get();
             existingCategory.setCategoryName(category.getCategoryName());
             return categoryRepository.save(existingCategory);
         }else{
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND,"Category Not Found");
+            throw new ResourceNotFoundException("Category","CategoryId",categoryId);
         }
     }
 
