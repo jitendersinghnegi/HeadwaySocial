@@ -1,16 +1,17 @@
 package headway.backend.security;
-import headway.backend.jwt.AuthEntryPointJwt;
-import headway.backend.jwt.AuthTokenFilter;
+import headway.backend.security.jwt.AuthEntryPointJwt;
+import headway.backend.security.jwt.AuthTokenFilter;
+import headway.backend.security.services.UserDetailsServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.config.Customizer;
+import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -31,11 +32,24 @@ import javax.sql.DataSource;
 public class SecurityConfig {
     @Autowired
     DataSource dataSource;
+
+    @Autowired
+    UserDetailsServiceImpl userDetailsService;
     @Autowired
     private AuthEntryPointJwt unauthorizedHandler;
     @Bean
     public AuthTokenFilter authenticationJwtTokenFilter(){
         return new AuthTokenFilter();
+    }
+
+    @Bean
+    public DaoAuthenticationProvider authenticationProvider(){
+        DaoAuthenticationProvider authenticationProvider = new DaoAuthenticationProvider();
+        authenticationProvider.setUserDetailsService(userDetailsService);
+        authenticationProvider.setPasswordEncoder(passwordEncoder());
+        return authenticationProvider;
+
+
     }
     @Bean
     public PasswordEncoder passwordEncoder() {
@@ -43,8 +57,8 @@ public class SecurityConfig {
     }
 
     @Bean
-    public AuthenticationManager authenticationManager(AuthenticationConfiguration builder) throws Exception {
-        return builder.getAuthenticationManager();
+    public AuthenticationManager authenticationManager(AuthenticationConfiguration authConfig) throws Exception {
+        return authConfig.getAuthenticationManager();
     }
 
     @Bean
@@ -62,13 +76,15 @@ public class SecurityConfig {
     SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
          http.csrf(AbstractHttpConfigurer::disable) // for stateless APIs; see CSRF note below
                  .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/actuator/health", "/public/**", "/api/v1/user/register", "/api/v1/user/signin","/api/public/v1/categories","/api/admin/v1/categories/**","/api/webshop/contact").permitAll()
+                        .requestMatchers("/actuator/health", "/public/**", "/api/v1/user/register", "/api/v1/user/signin","/api/public/v1/categories","/api/admin/v1/categories/**","/api/webshop/contact","/api/v1/auth/**").permitAll()
                          .anyRequest().authenticated()
                 );
                 //.httpBasic(Customizer.withDefaults()); // or use JWT (see below)
                 http.exceptionHandling(exception -> exception.authenticationEntryPoint(unauthorizedHandler));
                 http.addFilterBefore(authenticationJwtTokenFilter(), UsernamePasswordAuthenticationFilter.class);
-         return http.build();
+                http.sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
+                http.authenticationProvider(authenticationProvider());
+                return http.build();
 
 
     }
@@ -76,5 +92,14 @@ public class SecurityConfig {
     public UserDetailsService userDetailsService(DataSource dataSource) {
         return new JdbcUserDetailsManager(dataSource);
     }
+
+    //@Bean
+   // public WebSecurityCustomizer webSecurityCustomizer(){
+        //return (web -> web.ignoring().requestMatchers(
+               // "/actuator/health",
+               // ""
+       // ));
+   // }
+
 
 }

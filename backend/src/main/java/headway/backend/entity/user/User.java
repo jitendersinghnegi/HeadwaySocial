@@ -5,45 +5,50 @@ import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.userdetails.UserDetails;
 
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
 
 @Entity
 @Table(name = "users")
+@Data
 @Getter @Setter
 @NoArgsConstructor @AllArgsConstructor @Builder
 // once normal code works implement UserDetails from  org.springframework.security.core.userdetails.UserDetails
 public class User{
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @Column(name = "user_id")
+    private Long userId;
 
-    @Column(unique = true, nullable = false)
+    @Column(unique = true, nullable = false,name = "email")
     @Email(message = "Email should be valid")
     @NotNull(message = "Email cannot be null")
     @NotBlank(message = "Email cannot be blank")
     private String email;
 
-    @Column(nullable = false)
+    @Column(nullable = false,name="password")
     private String password;
-    @Column(nullable = false)
+    @Column(unique = true,nullable = false,name="username")
     private String userName;
+    @Setter
+    @Getter
+    @ManyToMany(cascade = {CascadeType.MERGE},
+    fetch = FetchType.EAGER)
+    @JoinTable(name = "user_role", joinColumns = @JoinColumn(name = "user_id"),
+    inverseJoinColumns = @JoinColumn(name = "role_id"))
+    private Set<Role> roles = new HashSet<>();
+    @Getter
+    @Setter
+    @ManyToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+    @JoinTable(name="user_address",
+    joinColumns = @JoinColumn(name = "user_id"),
+    inverseJoinColumns = @JoinColumn(name="address_id"))
 
-    @Enumerated(EnumType.STRING)
-    private Role role;
+    private List<Address> addresses = new ArrayList<>();
 
-    @Override
-    public String toString() {
-        return "User{" +
-                "id=" + id +
-                ", email='" + email + '\'' +
-                ", password='" + password + '\'' +
-                ", userName='" + userName + '\'' +
-                ", role=" + role +
-                '}';
+    public User(String userName, String email, String password) {
+        this.userName = userName;
+        this.email = email;
+        this.password = password;
     }
 }

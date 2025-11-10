@@ -9,6 +9,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class LoginResponseDTO {
+    private Long id;
     private String jwtToken;
     private String userName;
     private List<String> roles;

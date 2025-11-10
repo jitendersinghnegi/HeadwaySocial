@@ -1,4 +1,4 @@
-package headway.backend.jwt;
+package headway.backend.security.jwt;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;

@@ -1,4 +1,4 @@
-package headway.backend.jwt;
+package headway.backend.security.jwt;
 
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwts;
