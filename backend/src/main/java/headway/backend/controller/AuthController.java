@@ -48,16 +48,18 @@ public class AuthController {
     @PostMapping("/signin")
     public ResponseEntity<?> authenticateUser(@RequestBody LoginRequestDTO loginRequest) {
         Authentication authentication;
+        System.out.println("********Authentication Started********");
         try {
             authentication = authenticationManager
                     .authenticate(new UsernamePasswordAuthenticationToken(loginRequest.getUsername(), loginRequest.getPassword()));
         } catch (AuthenticationException exception) {
+            System.out.println("********In Exception********");
             Map<String, Object> map = new HashMap<>();
             map.put("message", "Bad credentials");
             map.put("status", false);
             return new ResponseEntity<Object>(map, HttpStatus.NOT_FOUND);
         }
-
+        System.out.println("********After Try Catch********");
         SecurityContextHolder.getContext().setAuthentication(authentication);
 
         UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
@@ -70,7 +72,7 @@ public class AuthController {
 
         LoginResponseDTO response = new LoginResponseDTO(userDetails.getId()
                  ,userDetails.getUsername(), roles);
-
+        System.out.println("****************"+response.toString());
         return ResponseEntity.ok().header(HttpHeaders.SET_COOKIE,jwtCookie.toString()).body(response);
     }
 

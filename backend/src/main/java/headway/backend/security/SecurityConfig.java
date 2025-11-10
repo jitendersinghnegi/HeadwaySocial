@@ -62,13 +62,72 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
         config.setAllowCredentials(true);
-        config.setAllowedOrigins(java.util.List.of("http://localhost")); //change this later as per production url
+        config.setAllowedOrigins(java.util.List.of("http://localhost:3000")); //change this later as per production url
         config.setAllowedMethods(java.util.List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(java.util.List.of("Authorization", "Content-Type"));
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", config);
         return source;
     }
+
+    @Bean
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+
+        http
+                // 1. Enable CORS at security level
+                .cors(cors -> cors.configurationSource(request -> {
+                    CorsConfiguration config = new CorsConfiguration();
+
+                    // IMPORTANT: frontend URL must match exactly
+                    config.setAllowedOrigins(java.util.List.of("http://localhost:3000"));
+
+                    config.setAllowedMethods(java.util.List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+                    config.setAllowedHeaders(java.util.List.of("*"));
+
+                    // REQUIRED for cookies (credentials: include)
+                    config.setAllowCredentials(true);
+
+                    // For cookies in browsers
+                    config.setExposedHeaders(java.util.List.of("Set-Cookie"));
+
+                    config.setMaxAge(3600L);
+
+                    return config;
+                }))
+
+                // 2. Disable CSRF for stateless API
+                .csrf(AbstractHttpConfigurer::disable)
+
+                // 3. Public vs Protected endpoints
+                .authorizeHttpRequests(auth -> auth
+                        .requestMatchers(
+                                "/actuator/health",
+                                "/public/**",
+                                "/api/v1/auth/signin",
+                                "/api/v1/auth/logout",
+                                "/api/public/v1/categories",
+                                "/api/admin/v1/categories/**",
+                                "/api/webshop/contact"
+                        ).permitAll()
+                        .anyRequest().authenticated()
+                )
+
+                // 4. Exception handling
+                .exceptionHandling(ex -> ex.authenticationEntryPoint(unauthorizedHandler))
+
+                // 5. JWT Filter BEFORE UsernamePasswordAuthenticationFilter
+                .addFilterBefore(authenticationJwtTokenFilter(), UsernamePasswordAuthenticationFilter.class)
+
+                // 6. Stateless session
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+
+                // 7. Authentication provider
+                .authenticationProvider(authenticationProvider());
+
+        return http.build();
+    }
+
+/*
     @Bean
     SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http.csrf(AbstractHttpConfigurer::disable) // for stateless APIs; see CSRF note below
@@ -85,6 +144,8 @@ public class SecurityConfig {
 
 
     }
+
+ */
     @Bean
     public WebSecurityCustomizer webSecurityCustomizer() {
         return (web -> web.ignoring().requestMatchers("/v2/api-docs",
