@@ -11,6 +11,6 @@ import java.util.List;
 public class LoginResponseDTO {
     private Long id;
     private String jwtToken;
-    private String userName;
+    private String username;
     private List<String> roles;
 }
