@@ -12,7 +12,9 @@ import headway.backend.repo.UserRepository;
 import headway.backend.security.jwt.JwtUtils;
 import headway.backend.security.services.UserDetailsImpl;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -60,16 +62,16 @@ public class AuthController {
 
         UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
 
-        String jwtToken = jwtUtils.generateTokenFromUserName(userDetails);
+        ResponseCookie jwtCookie = jwtUtils.generateJwtCookie(userDetails);
 
         List<String> roles = userDetails.getAuthorities().stream()
                 .map(item -> item.getAuthority())
                 .collect(Collectors.toList());
 
         LoginResponseDTO response = new LoginResponseDTO(userDetails.getId()
-                , jwtToken ,userDetails.getUsername(), roles);
+                 ,userDetails.getUsername(), roles);
 
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok().header(HttpHeaders.SET_COOKIE,jwtCookie.toString()).body(response);
     }
 
     @PostMapping("/register")
@@ -118,4 +120,36 @@ public class AuthController {
         return ResponseEntity.ok(new MessageResponse("User registered successfully!"));
 
     }
+
+    @GetMapping("/username")
+    public String currentUserName(Authentication authentication){
+        if (authentication != null){
+            return authentication.getName();
+        }else{
+            return "";
+        }
+    }
+
+    @GetMapping("/user")
+    public ResponseEntity<?> getUserDetails(Authentication authentication){
+        UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
+
+        List<String> roles = userDetails.getAuthorities().stream()
+                .map(item -> item.getAuthority())
+                .collect(Collectors.toList());
+
+        LoginResponseDTO response = new LoginResponseDTO(userDetails.getId(),
+                userDetails.getUsername(), roles);
+
+        return ResponseEntity.ok().body(response);
+    }
+
+    @PostMapping("/signout")
+    public ResponseEntity<?> signoutUser(){
+        ResponseCookie cookie = jwtUtils.getCleanJwtCookie();
+        return ResponseEntity.ok().header(HttpHeaders.SET_COOKIE,
+                        cookie.toString())
+                .body(new MessageResponse("You've been signed out!"));
+    }
+
 }

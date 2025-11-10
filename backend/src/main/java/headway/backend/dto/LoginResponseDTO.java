@@ -13,4 +13,10 @@ public class LoginResponseDTO {
     private String jwtToken;
     private String username;
     private List<String> roles;
+
+    public LoginResponseDTO(Long id, String username, List<String> roles) {
+        this.id = id;
+        this.username = username;
+        this.roles = roles;
+    }
 }
