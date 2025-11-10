@@ -28,15 +28,14 @@ import javax.sql.DataSource;
 
 @Configuration
 @EnableWebSecurity
-@EnableMethodSecurity
+//@EnableMethodSecurity
 public class SecurityConfig {
     @Autowired
-    DataSource dataSource;
+    UserDetailsServiceImpl userDetailsService;
 
     @Autowired
-    UserDetailsServiceImpl userDetailsService;
-    @Autowired
     private AuthEntryPointJwt unauthorizedHandler;
+
     @Bean
     public AuthTokenFilter authenticationJwtTokenFilter(){
         return new AuthTokenFilter();
@@ -51,14 +50,15 @@ public class SecurityConfig {
 
 
     }
-    @Bean
-    public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
-    }
 
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration authConfig) throws Exception {
         return authConfig.getAuthenticationManager();
+    }
+
+    @Bean
+    public PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
     }
 
     @Bean
@@ -72,11 +72,36 @@ public class SecurityConfig {
         source.registerCorsConfiguration("/**", config);
         return source;
     }
+
+    SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+        http.csrf(AbstractHttpConfigurer::disable) // for stateless APIs; see CSRF note below
+                .authorizeHttpRequests(auth -> auth
+                        .requestMatchers("/actuator/health", "/public/**", "/api/v1/auth/register", "/api/v1/auth/signin","/api/public/v1/categories","/api/admin/v1/categories/**","/api/webshop/contact","/api/v1/auth/**").permitAll()
+                        .anyRequest().authenticated()
+                );
+        //.httpBasic(Customizer.withDefaults()); // or use JWT (see below)
+        http.exceptionHandling(exception -> exception.authenticationEntryPoint(unauthorizedHandler));
+        http.addFilterBefore(authenticationJwtTokenFilter(), UsernamePasswordAuthenticationFilter.class);
+        http.sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
+        http.authenticationProvider(authenticationProvider());
+        return http.build();
+
+
+    }
+    /*
     @Bean
     SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
          http.csrf(AbstractHttpConfigurer::disable) // for stateless APIs; see CSRF note below
-                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/actuator/health", "/public/**", "/api/v1/user/register", "/api/v1/user/signin","/api/public/v1/categories","/api/admin/v1/categories/**","/api/webshop/contact","/api/v1/auth/**").permitAll()
+                 .authorizeHttpRequests(auth ->
+                                 auth.requestMatchers("/api/v1/auth/**").permitAll()
+                                         .requestMatchers("/v3/api-docs/**").permitAll()
+                                         .requestMatchers("/api/public/v1/categories").permitAll()
+                                         .requestMatchers("/api/webshop/contact").permitAll()
+                                         .requestMatchers("/swagger-ui/**").permitAll()
+                                         .requestMatchers("/api/test/**").permitAll()
+                                         .requestMatchers("/api/admin/v1/categories/**").permitAll()
+                                         .requestMatchers("/images/**").permitAll()
+                                         .anyRequest().authenticated()
                          .anyRequest().authenticated()
                 );
                 //.httpBasic(Customizer.withDefaults()); // or use JWT (see below)
@@ -87,19 +112,23 @@ public class SecurityConfig {
                 return http.build();
 
 
+    }*/
+    @Bean
+    public WebSecurityCustomizer webSecurityCustomizer() {
+        return (web -> web.ignoring().requestMatchers("/v2/api-docs",
+                "/configuration/ui",
+                "/swagger-resources/**",
+                "/configuration/security",
+                "/swagger-ui.html",
+                "/api/v1/auth/**",
+                "/webjars/**"));
     }
+
+
+/*
     @Bean
     public UserDetailsService userDetailsService(DataSource dataSource) {
         return new JdbcUserDetailsManager(dataSource);
     }
-
-    //@Bean
-   // public WebSecurityCustomizer webSecurityCustomizer(){
-        //return (web -> web.ignoring().requestMatchers(
-               // "/actuator/health",
-               // ""
-       // ));
-   // }
-
-
+*/
 }

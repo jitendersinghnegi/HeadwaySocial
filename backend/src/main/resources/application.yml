@@ -39,7 +39,7 @@ logging:
     org.springframework: INFO
 
 jwt:
-  jwtSecret: headwaySecretKey82000306batatawadatamatar
+  jwtSecret: headwaySecretKey82000306batatawadatamatar123123123sdfsdfsdfsd
   jwtExpirationInMilliSeconds: 3600000
 
 
