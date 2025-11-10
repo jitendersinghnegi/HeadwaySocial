@@ -36,7 +36,9 @@ contact:
 
 logging:
   level:
-    org.springframework: INFO
+    org.springframework: DEBUG
+    org.springframework.security: DEBUG
+    headway.backend: DEBUG
 
 jwt:
   jwtSecret: headwaySecretKey82000306batatawadatamatar123123123sdfsdfsdfsd
