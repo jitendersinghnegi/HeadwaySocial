@@ -154,4 +154,12 @@ public class AuthController {
                 .body(new MessageResponse("You've been signed out!"));
     }
 
+    @GetMapping("/users")
+    public ResponseEntity<?> getAllUsers(){
+        List<UserDetailsImpl> users = userRepository.findAll().stream().map(user ->UserDetailsImpl.build(user)).toList();
+
+        return ResponseEntity.ok().body(users);
+    }
+
+
 }
