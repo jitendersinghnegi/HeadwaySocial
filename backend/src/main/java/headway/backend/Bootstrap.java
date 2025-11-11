@@ -1,8 +1,10 @@
 package headway.backend;
 
+import headway.backend.entity.stays.BookingSource;
 import headway.backend.entity.user.AppRole;
 import headway.backend.entity.user.Role;
 import headway.backend.entity.user.User;
+import headway.backend.repo.BookingSourceRepository;
 import headway.backend.repo.RoleRepository;
 import headway.backend.repo.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -26,6 +28,9 @@ public class Bootstrap {
     RoleRepository roleRepository;
     @Autowired
     private final UserRepository userRepository;
+
+    @Autowired
+    private final BookingSourceRepository bookingSourceRepository;
 
     @Bean
     CommandLineRunner seedDatabase() {
@@ -78,6 +83,16 @@ public class Bootstrap {
                 System.out.println("Created 3 dummy users.");
             } else {
                 System.out.println("Users already exist, skipping bootstrap.");
+            }
+            if (bookingSourceRepository.count() == 0){
+                BookingSource bookingSource1 = BookingSource.builder()
+                        .sourcename("Booking.com")
+                        .commision((long) 21.0)
+                        .bankaccountno("12331qhdskdh937123")
+                        .build();
+                bookingSourceRepository.save(bookingSource1);
+            }else{
+                System.out.println("Booking source  already exist, skipping bootstrap.");
             }
 
             System.out.println("Bootstrap completed successfully.");
