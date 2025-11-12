@@ -4,8 +4,10 @@ import headway.backend.dto.CategoryDTO;
 import headway.backend.dto.UserResponseDTO;
 import headway.backend.dto.stays.BookingSourceRequest;
 import headway.backend.dto.stays.BookingSourceResponse;
+import headway.backend.dto.stays.HotelRequest;
 import headway.backend.entity.category.Category;
 import headway.backend.entity.stays.BookingSource;
+import headway.backend.entity.stays.Hotel;
 import headway.backend.service.StaysService;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
@@ -36,5 +38,15 @@ public class StaysController {
     public ResponseEntity<BookingSource> updateBookingSource(@Valid @RequestBody BookingSourceRequest bookingServiceRequest , @PathVariable Long bookingSourceId){
         return ResponseEntity.ok(staysService.updateBookingSource(bookingServiceRequest,bookingSourceId));
 
+    }
+    @GetMapping("/hotels")
+    public ResponseEntity<List<Hotel>> getAllHotels(){
+        List<Hotel> hotels = staysService.getAllHotels();
+        return ResponseEntity.ok(hotels);
+    }
+    @PostMapping("/hotels/create")
+    public ResponseEntity<Hotel> createNewHotel(@Valid @RequestBody HotelRequest request){
+        Hotel hotel = staysService.createNewHotel(request);
+        return ResponseEntity.ok(hotel);
     }
 }

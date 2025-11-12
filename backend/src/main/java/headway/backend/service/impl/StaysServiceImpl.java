@@ -1,9 +1,12 @@
 package headway.backend.service.impl;
 
 import headway.backend.dto.stays.BookingSourceRequest;
+import headway.backend.dto.stays.HotelRequest;
 import headway.backend.entity.stays.BookingSource;
+import headway.backend.entity.stays.Hotel;
 import headway.backend.exceptions.ResourceNotFoundException;
 import headway.backend.repo.BookingSourceRepository;
+import headway.backend.repo.HotelRepository;
 import headway.backend.service.AuditService;
 import headway.backend.service.StaysService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,15 +21,16 @@ public class StaysServiceImpl implements StaysService {
      * @return
      */
     @Autowired
-    BookingSourceRepository bookingSourceRepo;
-    @Autowired
     AuditService auditService;
     @Autowired
-    private BookingSourceRepository bookingSourceRepository;
+    BookingSourceRepository bookingSourceRepository;
+
+    @Autowired
+    HotelRepository hotelRepository;
 
     @Override
     public List<BookingSource> getAllBookingSources() {
-        return bookingSourceRepo.findAll();
+        return bookingSourceRepository.findAll();
     }
 
     /**
@@ -58,13 +62,13 @@ public class StaysServiceImpl implements StaysService {
     @Override
     public BookingSource updateBookingSource(BookingSourceRequest bookingSource, Long bookingSourceId) {
 
-       Optional<BookingSource> optionalBookingSource = bookingSourceRepo.findById(bookingSourceId);
+       Optional<BookingSource> optionalBookingSource = bookingSourceRepository.findById(bookingSourceId);
        if(optionalBookingSource.isPresent()){
            BookingSource existingBookingSource = optionalBookingSource.get();
            existingBookingSource.setSourcename(bookingSource.getSourcename());
            existingBookingSource.setBankaccountno(bookingSource.getBankaccountno());
            existingBookingSource.setCommision(bookingSource.getCommision());
-           BookingSource updatedBookingSource = bookingSourceRepo.save(existingBookingSource);
+           BookingSource updatedBookingSource = bookingSourceRepository.save(existingBookingSource);
            auditService.recordAction(
                    "BookingSource",
                    updatedBookingSource.getSourceid().toString(),
@@ -75,5 +79,35 @@ public class StaysServiceImpl implements StaysService {
        }else{
            throw new ResourceNotFoundException("BookingSource","BookingSourceID",bookingSourceId);
        }
+    }
+
+    /**
+     * @return
+     */
+    @Override
+    public List<Hotel> getAllHotels() {
+        return hotelRepository.findAll();
+    }
+
+    /**
+     * @param hotelRequest
+     * @return
+     */
+    @Override
+    public Hotel createNewHotel(HotelRequest hotelRequest) {
+        Hotel hotel = new Hotel();
+        hotel.setName(hotelRequest.getName());
+        hotel.setLease_amount(hotelRequest.getLease_amount());
+        hotel.setRooms(hotelRequest.getRooms());
+        hotel.setLongitude(hotelRequest.getLongitude());
+        hotel.setLatitude(hotelRequest.getLatitude());
+        Hotel createdHotel = hotelRepository.save(hotel);
+        auditService.recordAction(
+                "Hotel",
+                createdHotel.getId().toString(),
+                "Create",
+                "Created new  hotel : "+ createdHotel.getName()
+        );
+        return createdHotel;
     }
 }

@@ -52,18 +52,15 @@ public class AuthController {
     @PostMapping("/signin")
     public ResponseEntity<?> authenticateUser(@RequestBody LoginRequestDTO loginRequest) {
         Authentication authentication;
-        System.out.println("********Authentication Started********");
         try {
             authentication = authenticationManager
                     .authenticate(new UsernamePasswordAuthenticationToken(loginRequest.getUsername(), loginRequest.getPassword()));
         } catch (AuthenticationException exception) {
-            System.out.println("********In Exception********");
             Map<String, Object> map = new HashMap<>();
             map.put("message", "Bad credentials");
             map.put("status", false);
             return new ResponseEntity<Object>(map, HttpStatus.NOT_FOUND);
         }
-        System.out.println("********After Try Catch********");
         SecurityContextHolder.getContext().setAuthentication(authentication);
 
         UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
@@ -76,54 +73,7 @@ public class AuthController {
 
         LoginResponseDTO response = new LoginResponseDTO(userDetails.getId()
                  ,userDetails.getUsername(), roles);
-        System.out.println("****************"+response.toString());
         return ResponseEntity.ok().header(HttpHeaders.SET_COOKIE,jwtCookie.toString()).body(response);
-    }
-
-    @PostMapping("/register")
-    public ResponseEntity<?> registerUser(@RequestBody SignupRequestDTO registerRequest) {
-
-        if (userRepository.existsByUserName(registerRequest.getUsername())) {
-            return ResponseEntity.badRequest().body(new MessageResponse("Error: Username is already taken!"));
-        }
-
-        if (userRepository.existsByEmail(registerRequest.getEmail())) {
-            return ResponseEntity.badRequest().body(new MessageResponse("Error: Email is already in use!"));
-        }
-
-        // Create new user's account
-        User user = new User(registerRequest.getUsername(),
-                registerRequest.getEmail(),
-                encoder.encode(registerRequest.getPassword()));
-
-        Set<String> strRoles = registerRequest.getRole();
-        Set<Role> roles = new HashSet<>();
-
-        if (strRoles == null) {
-            Role userRole = roleRepository.findByRoleName(AppRole.ROLE_USER)
-                    .orElseThrow(() -> new RuntimeException("Error: Role is not found."));
-            roles.add(userRole);
-        } else {
-            strRoles.forEach(role -> {
-                switch (role) {
-                    case "admin":
-                        Role adminRole = roleRepository.findByRoleName(AppRole.ROLE_ADMIN)
-                                .orElseThrow(() -> new RuntimeException("Error: Role is not found."));
-                        roles.add(adminRole);
-
-                        break;
-                    default:
-                        Role userRole = roleRepository.findByRoleName(AppRole.ROLE_USER)
-                                .orElseThrow(() -> new RuntimeException("Error: Role is not found."));
-                        roles.add(userRole);
-                }
-            });
-        }
-
-        user.setRoles(roles);
-        userRepository.save(user);
-        return ResponseEntity.ok(new MessageResponse("User registered successfully!"));
-
     }
 
     @GetMapping("/username")
@@ -156,13 +106,15 @@ public class AuthController {
                         cookie.toString())
                 .body(new MessageResponse("You've been signed out!"));
     }
-
+/*
     @GetMapping("/users")
     public ResponseEntity<?> getAllUsers(){
         List<UserDetailsImpl> users = userRepository.findAll().stream().map(user ->UserDetailsImpl.build(user)).toList();
 
         return ResponseEntity.ok().body(users);
     }
+
+ */
 
 
 }
