@@ -11,6 +11,7 @@ import headway.backend.repo.RoleRepository;
 import headway.backend.repo.UserRepository;
 import headway.backend.security.jwt.JwtUtils;
 import headway.backend.security.services.UserDetailsImpl;
+import headway.backend.service.AuditService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -44,6 +45,9 @@ public class AuthController {
 
     @Autowired
     PasswordEncoder encoder;
+
+    @Autowired
+    AuditService auditService;
 
     @PostMapping("/signin")
     public ResponseEntity<?> authenticateUser(@RequestBody LoginRequestDTO loginRequest) {
@@ -118,7 +122,6 @@ public class AuthController {
 
         user.setRoles(roles);
         userRepository.save(user);
-
         return ResponseEntity.ok(new MessageResponse("User registered successfully!"));
 
     }

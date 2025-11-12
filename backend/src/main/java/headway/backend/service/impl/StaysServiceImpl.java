@@ -4,6 +4,7 @@ import headway.backend.dto.stays.BookingSourceRequest;
 import headway.backend.entity.stays.BookingSource;
 import headway.backend.exceptions.ResourceNotFoundException;
 import headway.backend.repo.BookingSourceRepository;
+import headway.backend.service.AuditService;
 import headway.backend.service.StaysService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -18,6 +19,11 @@ public class StaysServiceImpl implements StaysService {
      */
     @Autowired
     BookingSourceRepository bookingSourceRepo;
+    @Autowired
+    AuditService auditService;
+    @Autowired
+    private BookingSourceRepository bookingSourceRepository;
+
     @Override
     public List<BookingSource> getAllBookingSources() {
         return bookingSourceRepo.findAll();
@@ -33,7 +39,14 @@ public class StaysServiceImpl implements StaysService {
         newBookingSource.setSourcename(bookingSource.getSourcename());
         newBookingSource.setBankaccountno(bookingSource.getBankaccountno());
         newBookingSource.setCommision(bookingSource.getCommision());
-        return bookingSourceRepo.save(newBookingSource);
+        BookingSource createdBookingSource = bookingSourceRepository.save(newBookingSource);
+        auditService.recordAction(
+                "BookingSource",
+                createdBookingSource.getSourceid().toString(),
+                "Create",
+                "Created Booking Source : "+ createdBookingSource.getSourcename()
+        );
+        return createdBookingSource;
 
     }
 
@@ -51,7 +64,14 @@ public class StaysServiceImpl implements StaysService {
            existingBookingSource.setSourcename(bookingSource.getSourcename());
            existingBookingSource.setBankaccountno(bookingSource.getBankaccountno());
            existingBookingSource.setCommision(bookingSource.getCommision());
-           return bookingSourceRepo.save(existingBookingSource);
+           BookingSource updatedBookingSource = bookingSourceRepo.save(existingBookingSource);
+           auditService.recordAction(
+                   "BookingSource",
+                   updatedBookingSource.getSourceid().toString(),
+                   "Update",
+                   "updatedBookingSource Booking Source : "+ updatedBookingSource.getSourcename()
+           );
+           return updatedBookingSource;
        }else{
            throw new ResourceNotFoundException("BookingSource","BookingSourceID",bookingSourceId);
        }

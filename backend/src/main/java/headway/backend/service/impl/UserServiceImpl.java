@@ -2,6 +2,7 @@ package headway.backend.service.impl;
 
 import headway.backend.dto.UserResponseDTO;
 import headway.backend.repo.UserRepository;
+import headway.backend.service.AuditService;
 import headway.backend.service.UserService;
 import headway.backend.utils.UserMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,6 +15,8 @@ public class UserServiceImpl implements UserService {
     /**
      * @return
      */
+    @Autowired
+    AuditService auditService;
     @Autowired
     UserRepository userRepository;
     @Override
