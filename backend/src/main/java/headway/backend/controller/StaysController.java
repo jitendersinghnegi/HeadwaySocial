@@ -5,9 +5,11 @@ import headway.backend.dto.UserResponseDTO;
 import headway.backend.dto.stays.BookingSourceRequest;
 import headway.backend.dto.stays.BookingSourceResponse;
 import headway.backend.dto.stays.HotelRequest;
+import headway.backend.dto.stays.RoomIncomeRequest;
 import headway.backend.entity.category.Category;
 import headway.backend.entity.stays.BookingSource;
 import headway.backend.entity.stays.Hotel;
+import headway.backend.entity.stays.RoomIncome;
 import headway.backend.service.StaysService;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
@@ -51,7 +53,20 @@ public class StaysController {
     }
 
     @PutMapping("/hotels/update/{hotelId}")
-        public ResponseEntity<Hotel> updateHotelDetails(@Valid @RequestBody HotelRequest request, @PathVariable Long hotelId){
+    public ResponseEntity<Hotel> updateHotelDetails(@Valid @RequestBody HotelRequest request, @PathVariable Long hotelId){
         return ResponseEntity.ok(staysService.updateHotelDetails(request,hotelId));
         }
+    @GetMapping("/room-sales")
+    public ResponseEntity<List<RoomIncome>>  getAll(){
+        List<RoomIncome> roomIncomeList = staysService.getAllRoomIncomeData();
+        return ResponseEntity.ok(roomIncomeList);
+
+    }
+    @PostMapping("/room-sales/create")
+    public ResponseEntity<RoomIncome> createNewIncomeEntry(@Valid @RequestBody RoomIncomeRequest request){
+        RoomIncome roomIncome = staysService.createNewIncomeEntry(request);
+        return ResponseEntity.ok(roomIncome);
+    }
+
+
 }

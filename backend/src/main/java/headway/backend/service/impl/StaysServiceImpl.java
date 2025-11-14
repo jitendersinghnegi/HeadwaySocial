@@ -2,16 +2,20 @@ package headway.backend.service.impl;
 
 import headway.backend.dto.stays.BookingSourceRequest;
 import headway.backend.dto.stays.HotelRequest;
+import headway.backend.dto.stays.RoomIncomeRequest;
 import headway.backend.entity.stays.BookingSource;
 import headway.backend.entity.stays.Hotel;
+import headway.backend.entity.stays.RoomIncome;
 import headway.backend.exceptions.ResourceNotFoundException;
 import headway.backend.repo.BookingSourceRepository;
 import headway.backend.repo.HotelRepository;
+import headway.backend.repo.RoomIncomeRepository;
 import headway.backend.service.AuditService;
 import headway.backend.service.StaysService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -27,6 +31,8 @@ public class StaysServiceImpl implements StaysService {
 
     @Autowired
     HotelRepository hotelRepository;
+    @Autowired
+    RoomIncomeRepository roomIncomeRepository;
 
     @Override
     public List<BookingSource> getAllBookingSources() {
@@ -139,5 +145,43 @@ public class StaysServiceImpl implements StaysService {
            throw new ResourceNotFoundException("Hotel","HotelID",hotelId);
        }
 
+    }
+
+    /**
+     * @return
+     */
+    @Override
+    public List<RoomIncome> getAllRoomIncomeData() {
+        return roomIncomeRepository.findAll();
+    }
+
+    /**
+     * @param request
+     * @return
+     */
+    @Override
+    public RoomIncome createNewIncomeEntry(RoomIncomeRequest request) {
+        RoomIncome roomIncome = new RoomIncome();
+        roomIncome.setCash(request.isCash());
+        roomIncome.setArrival_date(request.getArrival_date());
+        roomIncome.setBooking_source(request.getBooking_source());
+        roomIncome.setPax(request.getPax());
+        roomIncome.setRoom_no(request.getRoom_no());
+        roomIncome.setDebit_card(request.isDebit_card());
+        roomIncome.setCredit_card(request.isCredit_card());
+        roomIncome.setUpi(request.isUpi());
+        roomIncome.setTimestamp(LocalDateTime.now());
+        roomIncome.setDeparture_date(request.getDeparture_date());
+        roomIncome.setGuest_name(request.getGuest_name());
+        roomIncome.setHotel_name(request.getHotel_name());
+        roomIncome.setPayment_status(request.getPayment_status());
+        RoomIncome savedRoomIncome = roomIncomeRepository.save(roomIncome);
+        auditService.recordAction(
+                "RoomIncome",
+                savedRoomIncome.getId().toString(),
+                "Created",
+                "Updated   Room Income : "+ savedRoomIncome.getRoom_no() + "Guest Name : "+ savedRoomIncome.getGuest_name() + "for Hotel "+savedRoomIncome.getHotel_name()
+        );
+        return null;
     }
 }
