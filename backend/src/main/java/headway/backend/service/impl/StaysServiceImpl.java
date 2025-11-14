@@ -13,8 +13,13 @@ import headway.backend.repo.RoomIncomeRepository;
 import headway.backend.service.AuditService;
 import headway.backend.service.StaysService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -151,8 +156,16 @@ public class StaysServiceImpl implements StaysService {
      * @return
      */
     @Override
-    public List<RoomIncome> getAllRoomIncomeData() {
-        return roomIncomeRepository.findAll();
+    public Page<RoomIncome> getAllRoomIncomeData(int page, int size, String hotel_name, String startDate, String endDate) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "timestamp"));
+        LocalDateTime start = (startDate != null && !startDate.isEmpty())
+                ? LocalDate.parse(startDate).atStartOfDay()
+                : LocalDateTime.MIN;
+        LocalDateTime end = (endDate != null && !endDate.isEmpty())
+                ? LocalDate.parse(endDate).atTime(23, 59, 59)
+                : LocalDateTime.now();
+        System.out.println("Values passed are ---"+hotel_name+"........"+size);
+        return roomIncomeRepository.findByFilters(hotel_name,start,end,pageable);
     }
 
     /**
@@ -175,12 +188,13 @@ public class StaysServiceImpl implements StaysService {
         roomIncome.setGuest_name(request.getGuest_name());
         roomIncome.setHotel_name(request.getHotel_name());
         roomIncome.setPayment_status(request.getPayment_status());
+        roomIncome.setAmount(request.getAmount());
         RoomIncome savedRoomIncome = roomIncomeRepository.save(roomIncome);
         auditService.recordAction(
                 "RoomIncome",
                 savedRoomIncome.getId().toString(),
                 "Created",
-                "Updated   Room Income : "+ savedRoomIncome.getRoom_no() + "Guest Name : "+ savedRoomIncome.getGuest_name() + "for Hotel "+savedRoomIncome.getHotel_name()
+                "Created   Room Income for Room No : "+ savedRoomIncome.getRoom_no() + "Guest Name : "+ savedRoomIncome.getGuest_name() + "for Hotel "+savedRoomIncome.getHotel_name()
         );
         return null;
     }

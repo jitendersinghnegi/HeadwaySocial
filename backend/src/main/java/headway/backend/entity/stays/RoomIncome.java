@@ -6,6 +6,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.Date;
 
@@ -46,6 +47,8 @@ public class RoomIncome {
     private String hotel_name;
     @Column(name="payment_status")
     private String payment_status;
+    @Column(precision = 18, scale = 2, name="amount")
+    private BigDecimal amount;
 
 
 

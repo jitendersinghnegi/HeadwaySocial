@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.Date;
 @NoArgsConstructor
@@ -35,4 +36,6 @@ public class RoomIncomeRequest {
     private String hotel_name;
 
     private String payment_status;
+
+    private BigDecimal amount;
 }

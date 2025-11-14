@@ -16,6 +16,7 @@ import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.data.domain.Page;
 
 import java.util.List;
 
@@ -57,8 +58,15 @@ public class StaysController {
         return ResponseEntity.ok(staysService.updateHotelDetails(request,hotelId));
         }
     @GetMapping("/room-sales")
-    public ResponseEntity<List<RoomIncome>>  getAll(){
-        List<RoomIncome> roomIncomeList = staysService.getAllRoomIncomeData();
+    public ResponseEntity<Page<RoomIncome>>  getAll(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(required = false) String hotelName,
+            @RequestParam(required = false) String startDate,
+            @RequestParam(required = false) String endDate
+    ){
+
+        Page<RoomIncome> roomIncomeList = staysService.getAllRoomIncomeData(page,size,hotelName,startDate,endDate);
         return ResponseEntity.ok(roomIncomeList);
 
     }

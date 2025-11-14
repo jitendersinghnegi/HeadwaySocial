@@ -6,7 +6,9 @@ import headway.backend.dto.stays.RoomIncomeRequest;
 import headway.backend.entity.stays.BookingSource;
 import headway.backend.entity.stays.Hotel;
 import headway.backend.entity.stays.RoomIncome;
+import org.springframework.data.domain.Page;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 public interface StaysService {
@@ -16,7 +18,7 @@ public interface StaysService {
     List<Hotel> getAllHotels();
     Hotel createNewHotel(HotelRequest property);
     Hotel updateHotelDetails(HotelRequest request, Long hotelId);
-    List<RoomIncome> getAllRoomIncomeData();
+    Page<RoomIncome> getAllRoomIncomeData(int page, int size, String hotel_name, String startDate, String endDate);
     RoomIncome createNewIncomeEntry(RoomIncomeRequest request);
 
 }
