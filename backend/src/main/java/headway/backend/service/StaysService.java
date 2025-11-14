@@ -13,4 +13,5 @@ public interface StaysService {
     BookingSource updateBookingSource(BookingSourceRequest bookingSource,Long bookingSourceId);
     List<Hotel> getAllHotels();
     Hotel createNewHotel(HotelRequest property);
+    Hotel updateHotelDetails(HotelRequest request, Long hotelId);
 }

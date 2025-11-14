@@ -49,4 +49,9 @@ public class StaysController {
         Hotel hotel = staysService.createNewHotel(request);
         return ResponseEntity.ok(hotel);
     }
+
+    @PutMapping("/hotels/update/{hotelId}")
+        public ResponseEntity<Hotel> updateHotelDetails(@Valid @RequestBody HotelRequest request, @PathVariable Long hotelId){
+        return ResponseEntity.ok(staysService.updateHotelDetails(request,hotelId));
+        }
 }

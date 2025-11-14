@@ -110,4 +110,34 @@ public class StaysServiceImpl implements StaysService {
         );
         return createdHotel;
     }
+
+    /**
+     * @param request
+     * @param hotelId
+     * @return
+     */
+    @Override
+    public Hotel updateHotelDetails(HotelRequest request, Long hotelId) {
+       Optional<Hotel> optionalHotel = hotelRepository.findById(hotelId);
+       if(optionalHotel.isPresent()){
+           Hotel existingHotel = optionalHotel.get();
+           existingHotel.setLatitude(request.getLatitude());
+           existingHotel.setRooms(request.getRooms());
+           existingHotel.setName(request.getName());
+           existingHotel.setLongitude(request.getLongitude());
+           existingHotel.setLease_amount(request.getLease_amount());
+           Hotel updateHotel = hotelRepository.save(existingHotel);
+           auditService.recordAction(
+                   "Hotel",
+                   updateHotel.getId().toString(),
+                   "Updated",
+                   "Updated   hotel : "+ updateHotel.getName()
+           );
+           return updateHotel;
+
+       }else{
+           throw new ResourceNotFoundException("Hotel","HotelID",hotelId);
+       }
+
+    }
 }
