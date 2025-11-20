@@ -160,11 +160,10 @@ public class StaysServiceImpl implements StaysService {
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "timestamp"));
         LocalDateTime start = (startDate != null && !startDate.isEmpty())
                 ? LocalDate.parse(startDate).atStartOfDay()
-                : LocalDateTime.MIN;
+                : LocalDateTime.of(2022,1,1,0,1);
         LocalDateTime end = (endDate != null && !endDate.isEmpty())
                 ? LocalDate.parse(endDate).atTime(23, 59, 59)
                 : LocalDateTime.now();
-        System.out.println("Values passed are ---"+hotel_name+"........"+size);
         return roomIncomeRepository.findByFilters(hotel_name,start,end,pageable);
     }
 
@@ -194,8 +193,46 @@ public class StaysServiceImpl implements StaysService {
                 "RoomIncome",
                 savedRoomIncome.getId().toString(),
                 "Created",
-                "Created   Room Income for Room No : "+ savedRoomIncome.getRoom_no() + "Guest Name : "+ savedRoomIncome.getGuest_name() + "for Hotel "+savedRoomIncome.getHotel_name()
+                "Created   Room Income for Room No : "+ savedRoomIncome.getRoom_no() + "Guest Name : "+ savedRoomIncome.getGuest_name() + " for Hotel "+savedRoomIncome.getHotel_name()
         );
-        return null;
+        return savedRoomIncome;
+    }
+
+    /**
+     * @param request
+     * @param incomeId
+     * @return
+     */
+    @Override
+    public RoomIncome updateIncomeEntry(RoomIncomeRequest request, Long incomeId) {
+        Optional<RoomIncome> optionalRoomIncome = roomIncomeRepository.findById(incomeId);
+        if(optionalRoomIncome.isPresent()){
+            RoomIncome existingRoomIncomeEntry = optionalRoomIncome.get();
+            existingRoomIncomeEntry.setCash(request.isCash());
+            existingRoomIncomeEntry.setArrival_date(request.getArrival_date());
+            existingRoomIncomeEntry.setBooking_source(request.getBooking_source());
+            existingRoomIncomeEntry.setPax(request.getPax());
+            existingRoomIncomeEntry.setRoom_no(request.getRoom_no());
+            existingRoomIncomeEntry.setDebit_card(request.isDebit_card());
+            existingRoomIncomeEntry.setCredit_card(request.isCredit_card());
+            existingRoomIncomeEntry.setUpi(request.isUpi());
+            existingRoomIncomeEntry.setTimestamp(LocalDateTime.now());
+            existingRoomIncomeEntry.setDeparture_date(request.getDeparture_date());
+            existingRoomIncomeEntry.setGuest_name(request.getGuest_name());
+            existingRoomIncomeEntry.setHotel_name(request.getHotel_name());
+            existingRoomIncomeEntry.setPayment_status(request.getPayment_status());
+            existingRoomIncomeEntry.setAmount(request.getAmount());
+            RoomIncome updatedRoomIncome = roomIncomeRepository.save(existingRoomIncomeEntry);
+            auditService.recordAction(
+                    "RoomIncome",
+                    updatedRoomIncome.getId().toString(),
+                    "Updated",
+                    "Updated Room Income for Room No : "+ updatedRoomIncome.getRoom_no() + "Guest Name : "+ updatedRoomIncome.getGuest_name() + " for Hotel "+updatedRoomIncome.getHotel_name()
+            );
+            return updatedRoomIncome;
+        }else{
+            throw new ResourceNotFoundException("RoomIncome","RoomIncomeID",incomeId);
+        }
+
     }
 }

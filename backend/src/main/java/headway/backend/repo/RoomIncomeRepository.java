@@ -15,10 +15,15 @@ import java.time.LocalDateTime;
 @Repository
 public interface RoomIncomeRepository extends JpaRepository<RoomIncome,Long> {
     @Query("""
-        SELECT a FROM RoomIncome a
-        WHERE (:hotel_name IS NULL OR :hotel_name = '' OR a.hotel_name = :hotel_name)
-        AND a.timestamp BETWEEN :startDate AND :endDate
-    """)
+    SELECT a FROM RoomIncome a
+    WHERE (:hotel_name IS NULL OR :hotel_name = '' OR a.hotel_name = :hotel_name)
+    AND (
+        COALESCE(:startDate, :endDate) IS NULL
+        OR a.timestamp BETWEEN COALESCE(:startDate, a.timestamp)
+                           AND COALESCE(:endDate, a.timestamp)
+    )
+    ORDER BY a.timestamp DESC
+""")
     Page<RoomIncome> findByFilters(
             @Param("hotel_name") String hotel_name,
             @Param("startDate") LocalDateTime startDate,

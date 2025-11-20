@@ -76,5 +76,10 @@ public class StaysController {
         return ResponseEntity.ok(roomIncome);
     }
 
+    @PutMapping("/room-sales/update/{roomIncomeId}")
+    public ResponseEntity<RoomIncome> updateHotelDetails(@Valid @RequestBody RoomIncomeRequest request, @PathVariable Long roomIncomeId){
+        return ResponseEntity.ok(staysService.updateIncomeEntry(request,roomIncomeId));
+    }
+
 
 }

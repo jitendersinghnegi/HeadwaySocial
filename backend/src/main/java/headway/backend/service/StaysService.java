@@ -20,5 +20,6 @@ public interface StaysService {
     Hotel updateHotelDetails(HotelRequest request, Long hotelId);
     Page<RoomIncome> getAllRoomIncomeData(int page, int size, String hotel_name, String startDate, String endDate);
     RoomIncome createNewIncomeEntry(RoomIncomeRequest request);
+    RoomIncome updateIncomeEntry(RoomIncomeRequest request,Long incomeId);
 
 }
