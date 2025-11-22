@@ -1,7 +1,9 @@
 package headway.backend.controller;
 
+import headway.backend.dto.kitchen.KitchenItemCategoryRequest;
 import headway.backend.dto.kitchen.KitchenItemRequest;
 import headway.backend.entity.kitchen.KitchenItem;
+import headway.backend.entity.kitchen.KitchenItemCategory;
 import headway.backend.service.KitchenService;
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
@@ -25,15 +27,30 @@ public class KitchenController {
             @RequestParam(name = "onlyActive", defaultValue = "false") boolean onlyActive) {
         return ResponseEntity.ok(kitchenService.getAllItems(onlyActive));
     }
+    @GetMapping("/categories")
+    public ResponseEntity<List<KitchenItemCategory>> getAllItemCategories(
+            @RequestParam(name = "onlyActive", defaultValue = "false") boolean onlyActive) {
+        return ResponseEntity.ok(kitchenService.getAllItemCategories(onlyActive));
+    }
 
     @GetMapping("/items/{id}")
     public ResponseEntity<KitchenItem> getItem(@PathVariable Long id) {
         return ResponseEntity.ok(kitchenService.getItem(id));
     }
 
+    @GetMapping("/categories/{id}")
+    public ResponseEntity<KitchenItemCategory> getItemCategory(@PathVariable Long id) {
+        return ResponseEntity.ok(kitchenService.getItemCategory(id));
+    }
+
     @PostMapping("/items/create")
     public ResponseEntity<KitchenItem> createItem(@RequestBody KitchenItemRequest item) {
         return ResponseEntity.ok(kitchenService.createItem(item));
+    }
+
+    @PostMapping("/categories/create")
+    public ResponseEntity<KitchenItemCategory> createItemCategory(@RequestBody KitchenItemCategoryRequest category) {
+        return ResponseEntity.ok(kitchenService.createItemCategory(category));
     }
 
     @PutMapping("/items/{id}")
@@ -42,9 +59,21 @@ public class KitchenController {
         return ResponseEntity.ok(kitchenService.updateItem(id, item));
     }
 
+    @PutMapping("/categories/{id}")
+    public ResponseEntity<KitchenItemCategory> updateItemCategory(@PathVariable Long id,
+                                                  @RequestBody KitchenItemCategoryRequest category) {
+        return ResponseEntity.ok(kitchenService.updateItemCategory(id, category));
+    }
+
     @DeleteMapping("/items/{id}")
     public ResponseEntity<Void> deleteItem(@PathVariable Long id) {
         kitchenService.deleteItem(id);
+        return ResponseEntity.noContent().build();
+    }
+
+    @DeleteMapping("/categories/{id}")
+    public ResponseEntity<Void> deleteItemCategory(@PathVariable Long id) {
+        kitchenService.deleteItemCategory(id);
         return ResponseEntity.noContent().build();
     }
 
