@@ -127,25 +127,7 @@ public class SecurityConfig {
         return http.build();
     }
 
-/*
-    @Bean
-    SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        http.csrf(AbstractHttpConfigurer::disable) // for stateless APIs; see CSRF note below
-                .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/actuator/health", "/public/**", "/api/v1/auth/signin","/api/public/v1/categories","/api/admin/v1/categories/**","/api/webshop/contact","/api/v1/auth/signin").permitAll()
-                        .anyRequest().authenticated()
-                );
-        //.httpBasic(Customizer.withDefaults()); // or use JWT (see below)
-        http.exceptionHandling(exception -> exception.authenticationEntryPoint(unauthorizedHandler));
-        http.addFilterBefore(authenticationJwtTokenFilter(), UsernamePasswordAuthenticationFilter.class);
-        http.sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
-        http.authenticationProvider(authenticationProvider());
-        return http.build();
 
-
-    }
-
- */
     @Bean
     public WebSecurityCustomizer webSecurityCustomizer() {
         return (web -> web.ignoring().requestMatchers("/v2/api-docs",
