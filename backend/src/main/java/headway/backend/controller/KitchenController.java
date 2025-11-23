@@ -2,8 +2,11 @@ package headway.backend.controller;
 
 import headway.backend.dto.kitchen.KitchenItemCategoryRequest;
 import headway.backend.dto.kitchen.KitchenItemRequest;
+import headway.backend.dto.kitchen.KitchenSaleRequest;
+import headway.backend.dto.kitchen.KitchenSaleResponse;
 import headway.backend.entity.kitchen.KitchenItem;
 import headway.backend.entity.kitchen.KitchenItemCategory;
+import headway.backend.service.KitchenSaleService;
 import headway.backend.service.KitchenService;
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
@@ -21,6 +24,8 @@ import java.util.List;
 public class KitchenController {
     @Autowired
     private KitchenService kitchenService;
+    @Autowired
+    private KitchenSaleService saleService;
 
     @GetMapping("/items")
     public ResponseEntity<List<KitchenItem>> getAllItems(
@@ -77,5 +82,11 @@ public class KitchenController {
         return ResponseEntity.noContent().build();
     }
 
+    @PostMapping("/sales")
+    public ResponseEntity<KitchenSaleResponse> createSale(
+            @RequestBody KitchenSaleRequest request
+    ) {
+        return ResponseEntity.ok(saleService.createSale(request));
+    }
 
 }
