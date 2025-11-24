@@ -2,9 +2,11 @@ package headway.backend.service.impl;
 
 import headway.backend.dto.kitchen.KitchenSaleRequest;
 import headway.backend.dto.kitchen.KitchenSaleResponse;
+import headway.backend.entity.kitchen.KitchenItem;
 import headway.backend.entity.kitchen.KitchenSale;
 import headway.backend.entity.kitchen.KitchenSaleItem;
 import headway.backend.repo.HotelRepository;
+import headway.backend.repo.KitchenItemRepository;
 import headway.backend.repo.KitchenSaleItemRepository;
 import headway.backend.repo.KitchenSaleRepository;
 import headway.backend.service.KitchenSaleService;
@@ -22,6 +24,7 @@ import headway.backend.entity.stays.Hotel;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -30,6 +33,8 @@ public class KitchenSaleServiceImpl implements KitchenSaleService {
     private final KitchenSaleRepository saleRepo;
     @Autowired
     private final KitchenSaleItemRepository itemRepo;
+    @Autowired
+    private final KitchenItemRepository kitchenItemRepository;
     @Autowired
     private final BillNumberGenerator billNumberGenerator;
     @Autowired
@@ -127,8 +132,11 @@ public class KitchenSaleServiceImpl implements KitchenSaleService {
      */
     @Override
     public String getItemNameFromDB(Long itemId) {
-        // TODO fetch from kitchen items table
-        return "Item #" + itemId;
+        Optional<KitchenItem> kitchenItem = kitchenItemRepository.findById(itemId);
+        if(kitchenItem.isPresent()){
+            return kitchenItem.get().getName();
+        }else{
+        return "Item #" + itemId;}
     }
 
     /**
