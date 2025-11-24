@@ -9,8 +9,10 @@ import headway.backend.repo.KitchenSaleItemRepository;
 import headway.backend.repo.KitchenSaleRepository;
 import headway.backend.service.KitchenSaleService;
 import headway.backend.utils.BillNumberGenerator;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import headway.backend.service.EmailService;
 import headway.backend.service.WhatsAppService;
@@ -35,17 +37,19 @@ public class KitchenSaleServiceImpl implements KitchenSaleService {
     private final WhatsAppService whatsappService;
     @Autowired
     private final HotelRepository hotelRepository;
+
+
     /**
      * @param request
      * @return
      */
+    @Transactional
     @Override
     public KitchenSaleResponse createSale(KitchenSaleRequest request) {
         // Fetch hotel name
         String hotelName = hotelRepository.findById(request.getHotelId())
                 .map(Hotel::getName)
                 .orElse("Unknown Hotel");
-
         KitchenSale sale = new KitchenSale();
         sale.setBillNumber(billNumberGenerator.generateBillNumber());
         sale.setCreatedAt(LocalDateTime.now());
@@ -94,11 +98,25 @@ public class KitchenSaleServiceImpl implements KitchenSaleService {
             whatsappService.sendKitchenBill(sale, saleItems);
         }
 
+        List<KitchenSaleResponse.SaleItemResponse> itemResponses = saleItems.stream()
+                .map(i -> new KitchenSaleResponse.SaleItemResponse(
+                        i.getItemId(),
+                        i.getItemName(),
+                        i.getQuantity(),
+                        i.getUnitPrice(),
+                        i.getTaxRate(),
+                        i.getUnitPrice() * i.getQuantity()
+                ))
+                .toList();
         return new KitchenSaleResponse(
                 sale.getId(),
                 sale.getBillNumber(),
                 sale.getCreatedAt(),
-                sale.getHotelName()
+                sale.getHotelName(),
+                sale.getSubtotal(),
+                sale.getTotalTax(),
+                sale.getGrandTotal(),
+                itemResponses
         );
     }
 
