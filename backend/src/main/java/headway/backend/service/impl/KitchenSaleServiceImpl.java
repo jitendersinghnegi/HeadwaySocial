@@ -19,6 +19,7 @@ import headway.backend.service.WhatsAppService;
 import headway.backend.entity.stays.Hotel;
 
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -128,5 +129,58 @@ public class KitchenSaleServiceImpl implements KitchenSaleService {
     public String getItemNameFromDB(Long itemId) {
         // TODO fetch from kitchen items table
         return "Item #" + itemId;
+    }
+
+    /**
+     * @param hotelId
+     * @param from
+     * @param to
+     * @return
+     */
+    @Override
+    public List<KitchenSaleResponse> getSalesFiltered(Long hotelId, LocalDate from, LocalDate to) {
+        LocalDateTime start = (from != null)
+                ? from.atStartOfDay()
+                : LocalDate.of(1970, 1, 1).atStartOfDay();
+
+        LocalDateTime end = (to != null)
+                ? to.atTime(23, 59, 59)
+                : LocalDate.of(3000, 1, 1).atTime(23, 59, 59);
+        List<KitchenSale> sales;
+
+        if (hotelId != null) {
+            sales = saleRepo.findByHotelIdAndCreatedAtBetween(hotelId, start, end);
+        } else {
+            sales = saleRepo.findByCreatedAtBetween(start, end);
+        }
+
+        return sales.stream().map(this::mapToResponse).toList();
+    }
+
+    private KitchenSaleResponse mapToResponse(KitchenSale sale) {
+        // If items are LAZY, make sure they are fetched in the query or with @EntityGraph
+        List<KitchenSaleItem> saleItems = sale.getItems();
+
+        List<KitchenSaleResponse.SaleItemResponse> itemResponses = saleItems.stream()
+                .map(i -> new KitchenSaleResponse.SaleItemResponse(
+                        i.getItemId(),
+                        i.getItemName(),
+                        i.getQuantity(),
+                        i.getUnitPrice(),
+                        i.getTaxRate(),
+                        i.getUnitPrice() * i.getQuantity()  // lineTotal
+                ))
+                .toList();
+
+        return new KitchenSaleResponse(
+                sale.getId(),
+                sale.getBillNumber(),
+                sale.getCreatedAt(),
+                sale.getHotelName(),
+                sale.getSubtotal(),
+                sale.getTotalTax(),
+                sale.getGrandTotal(),
+                itemResponses
+        );
     }
 }

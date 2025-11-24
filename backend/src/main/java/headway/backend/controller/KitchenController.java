@@ -11,9 +11,11 @@ import headway.backend.service.KitchenService;
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @RestController
@@ -87,6 +89,15 @@ public class KitchenController {
             @RequestBody KitchenSaleRequest request
     ) {
         return ResponseEntity.ok(saleService.createSale(request));
+    }
+
+    @GetMapping("/sales")
+    public List<KitchenSaleResponse> getSales(
+            @RequestParam(required = false) Long hotelId,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to
+    ) {
+        return saleService.getSalesFiltered(hotelId, from, to);
     }
 
 }
