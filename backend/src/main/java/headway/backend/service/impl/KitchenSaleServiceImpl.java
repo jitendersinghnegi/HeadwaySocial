@@ -53,6 +53,9 @@ public class KitchenSaleServiceImpl implements KitchenSaleService {
     @Override
     public KitchenSaleResponse createSale(KitchenSaleRequest request) {
         // Fetch hotel name
+        if (request.getPaymentMethod() == null || request.getPaymentMethod().isEmpty()) {
+            throw new RuntimeException("Payment method is required");
+        }
         String hotelName = hotelRepository.findById(request.getHotelId())
                 .map(Hotel::getName)
                 .orElse("Unknown Hotel");
@@ -63,6 +66,7 @@ public class KitchenSaleServiceImpl implements KitchenSaleService {
         // Hotel info
         sale.setHotelId(request.getHotelId());
         sale.setHotelName(hotelName);
+        sale.setPaymentMethod(request.getPaymentMethod());
 
         // Financials
         sale.setSubtotal(request.getSubtotal());
@@ -117,6 +121,8 @@ public class KitchenSaleServiceImpl implements KitchenSaleService {
         return new KitchenSaleResponse(
                 sale.getId(),
                 sale.getBillNumber(),
+                sale.getPaymentMethod(),
+                sale.getCustomerName(),
                 sale.getCreatedAt(),
                 sale.getHotelName(),
                 sale.getSubtotal(),
@@ -183,6 +189,8 @@ public class KitchenSaleServiceImpl implements KitchenSaleService {
         return new KitchenSaleResponse(
                 sale.getId(),
                 sale.getBillNumber(),
+                sale.getPaymentMethod(),
+                sale.getCustomerName(),
                 sale.getCreatedAt(),
                 sale.getHotelName(),
                 sale.getSubtotal(),

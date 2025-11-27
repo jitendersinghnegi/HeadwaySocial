@@ -21,6 +21,9 @@ public class KitchenSale {
 
     private String billNumber;
 
+    @Column(nullable = false)
+    private String paymentMethod;
+
     // HOTEL INFO
     @Column(nullable = false)
     private Long hotelId;

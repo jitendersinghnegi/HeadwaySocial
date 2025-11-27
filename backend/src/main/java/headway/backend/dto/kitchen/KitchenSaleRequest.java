@@ -11,6 +11,7 @@ public class KitchenSaleRequest {
     private Long hotelId;
 
     private CustomerDTO customer;
+    private String paymentMethod;
 
     private List<SaleItemDTO> items;
 

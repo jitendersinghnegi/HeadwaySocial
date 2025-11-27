@@ -15,6 +15,8 @@ public class KitchenSaleResponse {
 
     private Long id;
     private String billNumber;
+    private String paymentMethod;
+    private String customerName;
     private LocalDateTime createdAt;
     private String hotelName;
     private Double subtotal;
