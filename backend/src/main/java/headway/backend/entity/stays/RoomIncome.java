@@ -49,6 +49,10 @@ public class RoomIncome {
     private String payment_status;
     @Column(precision = 18, scale = 2, name="amount")
     private BigDecimal amount;
+    @Column(precision = 18, scale = 2, name="commission")
+    private BigDecimal commission;
+    @Column(precision = 18, scale = 2, name="revenue")
+    private BigDecimal revenue;
 
 
 

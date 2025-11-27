@@ -19,6 +19,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -174,6 +175,7 @@ public class StaysServiceImpl implements StaysService {
     @Override
     public RoomIncome createNewIncomeEntry(RoomIncomeRequest request) {
         RoomIncome roomIncome = new RoomIncome();
+        BigDecimal commissionAmount = BigDecimal.valueOf(0);
         roomIncome.setCash(request.isCash());
         roomIncome.setArrival_date(request.getArrival_date());
         roomIncome.setBooking_source(request.getBooking_source());
@@ -188,6 +190,9 @@ public class StaysServiceImpl implements StaysService {
         roomIncome.setHotel_name(request.getHotel_name());
         roomIncome.setPayment_status(request.getPayment_status());
         roomIncome.setAmount(request.getAmount());
+        commissionAmount = getCommissionAmount(request.getBooking_source(),request.getAmount());
+        roomIncome.setCommission(commissionAmount);
+        roomIncome.setRevenue(request.getAmount().subtract(commissionAmount));
         RoomIncome savedRoomIncome = roomIncomeRepository.save(roomIncome);
         auditService.recordAction(
                 "RoomIncome",
@@ -205,6 +210,7 @@ public class StaysServiceImpl implements StaysService {
      */
     @Override
     public RoomIncome updateIncomeEntry(RoomIncomeRequest request, Long incomeId) {
+        BigDecimal commissionAmount = BigDecimal.valueOf(0);
         Optional<RoomIncome> optionalRoomIncome = roomIncomeRepository.findById(incomeId);
         if(optionalRoomIncome.isPresent()){
             RoomIncome existingRoomIncomeEntry = optionalRoomIncome.get();
@@ -222,6 +228,9 @@ public class StaysServiceImpl implements StaysService {
             existingRoomIncomeEntry.setHotel_name(request.getHotel_name());
             existingRoomIncomeEntry.setPayment_status(request.getPayment_status());
             existingRoomIncomeEntry.setAmount(request.getAmount());
+            commissionAmount = getCommissionAmount(request.getBooking_source(),request.getAmount());
+            existingRoomIncomeEntry.setCommission(commissionAmount);
+            existingRoomIncomeEntry.setRevenue(request.getAmount().subtract(commissionAmount));
             RoomIncome updatedRoomIncome = roomIncomeRepository.save(existingRoomIncomeEntry);
             auditService.recordAction(
                     "RoomIncome",
@@ -233,6 +242,15 @@ public class StaysServiceImpl implements StaysService {
         }else{
             throw new ResourceNotFoundException("RoomIncome","RoomIncomeID",incomeId);
         }
+
+    }
+    private BigDecimal getCommissionAmount(String bookingSource,BigDecimal amount){
+        BookingSource bookingSourcePresent = bookingSourceRepository.findBySourcename(bookingSource);
+        Long commissionRate = bookingSourcePresent.getCommision();
+        BigDecimal commissionRateBD = BigDecimal.valueOf(commissionRate)
+                .divide(BigDecimal.valueOf(100));
+        return amount.multiply(commissionRateBD);
+
 
     }
 }
