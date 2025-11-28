@@ -10,6 +10,7 @@ import headway.backend.service.ExpenseService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.UrlResource;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -104,8 +105,17 @@ public class ExpenseController {
     }
 
     @GetMapping("/records")
-    public List<ExpenseDTO> getAllExpenses() {
-        return service.getAllExpenses();
+    public Page<ExpenseDTO> getAllExpenses(@RequestParam(defaultValue = "0") int page,
+                                           @RequestParam(defaultValue = "20") int size,
+                                           @RequestParam(defaultValue = "date,desc") String sort,
+
+                                           @RequestParam(required = false) String type,
+                                           @RequestParam(required = false) Long hotelId,
+                                           @RequestParam(required = false) Long categoryId,
+
+                                           @RequestParam(required = false) String from,
+                                           @RequestParam(required = false) String to) {
+        return service.getAllExpenses(page, size, sort, type, hotelId, categoryId, from, to);
     }
 
     @GetMapping(

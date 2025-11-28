@@ -13,6 +13,7 @@ import headway.backend.service.ExpenseService;
 import headway.backend.service.FileStorageService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -20,6 +21,8 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.stream.Stream;
+
 @Service
 @RequiredArgsConstructor
 public class ExpenseServiceImpl implements ExpenseService {
@@ -184,10 +187,52 @@ public class ExpenseServiceImpl implements ExpenseService {
      * @return
      */
     @Override
-    public List<ExpenseDTO> getAllExpenses() {
-        return expenseRepository.findAll().stream()
-                .map(e -> toDTO(e))
+    public Page<ExpenseDTO> getAllExpenses(int page,
+                                           int size,
+                                           String sortString,
+                                           String type,
+                                           Long hotelId,
+                                           Long categoryId,
+                                           String from,
+                                           String to) {
+        // Parse sorting
+        String[] sortParts = sortString.split(",");
+        String sortField = sortParts[0];
+        Sort.Direction direction = sortParts.length > 1 && sortParts[1].equalsIgnoreCase("asc")
+                ? Sort.Direction.ASC
+                : Sort.Direction.DESC;
+
+        Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sortField));
+
+        Page<Expense> rawPage = expenseRepository.findAll(pageable);
+
+        // Apply filters manually
+        Stream<Expense> stream = rawPage.stream();
+
+        if (type != null && !type.isEmpty()) {
+            stream = stream.filter(e -> e.getType().name().equals(type));
+        }
+        if (hotelId != null) {
+            stream = stream.filter(e -> e.getHotel().getId().equals(hotelId));
+        }
+        if (categoryId != null) {
+            stream = stream.filter(e -> e.getCategory().getId().equals(categoryId));
+        }
+        if (from != null && !from.isBlank()) {
+            LocalDate fromDate = LocalDate.parse(from);
+            stream = stream.filter(e -> !e.getDate().isBefore(fromDate));
+        }
+
+        if (to != null && !to.isBlank()) {
+            LocalDate toDate = LocalDate.parse(to);
+            stream = stream.filter(e -> !e.getDate().isAfter(toDate));
+        }
+
+        List<ExpenseDTO> filteredList = stream
+                .map(this::toDTO)
                 .toList();
+
+        return new PageImpl<>(filteredList, pageable, filteredList.size());
     }
 
     private ExpenseCategoryDTO findCategoryDTO(ExpenseCategory category) {

@@ -4,6 +4,7 @@ import headway.backend.dto.expense.ExpenseCategoryDTO;
 import headway.backend.dto.expense.ExpenseDTO;
 import headway.backend.dto.expense.SupplierDTO;
 import headway.backend.entity.expense.Expense;
+import org.springframework.data.domain.Page;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
@@ -27,5 +28,12 @@ public interface ExpenseService {
                                  String billNo,
                                  MultipartFile billFile);
 
-    public List<ExpenseDTO> getAllExpenses();
+    public Page<ExpenseDTO> getAllExpenses(int page,
+                                           int size,
+                                           String sortString,
+                                           String type,
+                                           Long hotelId,
+                                           Long categoryId,
+                                           String from,
+                                           String to);
 }
