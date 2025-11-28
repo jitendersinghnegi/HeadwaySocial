@@ -46,6 +46,11 @@ jwt:
   jwtCookieName : Shaktiman
 
 
+expense:
+  bills:
+    upload-dir: uploads/bills
+
+
 
 
 

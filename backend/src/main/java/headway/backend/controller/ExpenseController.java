@@ -1,12 +1,24 @@
 package headway.backend.controller;
 
+import org.springframework.core.io.Resource;
 import headway.backend.dto.expense.ExpenseCategoryDTO;
+import headway.backend.dto.expense.ExpenseDTO;
 import headway.backend.dto.expense.SupplierDTO;
+import headway.backend.entity.expense.Expense;
+import headway.backend.repo.ExpenseRepository;
 import headway.backend.service.ExpenseService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.UrlResource;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.File;
+import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
 
@@ -59,5 +71,70 @@ public class ExpenseController {
             @PathVariable Long supplierId
     ) {
         service.deleteSupplier(supplierId);
+    }
+
+    @PostMapping(
+            path = "/create",
+            consumes = { MediaType.MULTIPART_FORM_DATA_VALUE }
+    )
+    public Expense createExpense(
+            @RequestParam String date,
+            @RequestParam String type,
+            @RequestParam Long hotelId,
+            @RequestParam Long categoryId,
+            @RequestParam Long supplierId,
+            @RequestParam String amount,
+            @RequestParam String paymentMethod,
+            @RequestParam String paymentStatus,
+            @RequestParam(required = false) String billNo,
+            @RequestPart(name = "bill", required = false) MultipartFile bill
+    ) {
+        return service.createExpense(
+                date,
+                type,
+                hotelId,
+                categoryId,
+                supplierId,
+                amount,
+                paymentMethod,
+                paymentStatus,
+                billNo,
+                bill
+        );
+    }
+
+    @GetMapping("/records")
+    public List<ExpenseDTO> getAllExpenses() {
+        return service.getAllExpenses();
+    }
+
+    @GetMapping(
+            value = "/download-bill",
+            produces = MediaType.APPLICATION_OCTET_STREAM_VALUE
+    )
+    public ResponseEntity<Resource> downloadBill(@RequestParam String path) {
+        try {
+            File file = new File(path);
+
+            if (!file.exists()) {
+                return ResponseEntity.notFound().build();
+            }
+
+            Resource resource = new UrlResource(file.toURI());
+
+            if (!resource.exists() || !resource.isReadable()) {
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                        .body(null);
+            }
+
+            return ResponseEntity.ok()
+                    .header(HttpHeaders.CONTENT_DISPOSITION,
+                            "attachment; filename=\"" + file.getName() + "\"")
+                    .body(resource);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.internalServerError().build();
+        }
     }
 }
