@@ -1,13 +1,13 @@
 package headway.backend.controller;
 
-import headway.backend.dto.dashboard.DashboardKitchenSummary;
-import headway.backend.dto.dashboard.DashboardRoomSummary;
-import headway.backend.dto.dashboard.ExpenseSummary;
-import headway.backend.dto.dashboard.KitchenDashboardResponse;
+import headway.backend.dto.dashboard.*;
 import headway.backend.service.DashboardService;
+import headway.backend.service.HotelComparisonService;
 import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @CrossOrigin(origins = "*")
@@ -16,6 +16,8 @@ import org.springframework.web.bind.annotation.*;
 public class DashboardController {
     @Autowired
     private final DashboardService dashboardService;
+    @Autowired
+    private final HotelComparisonService hotelComparisonService;
     @GetMapping("/kitchen")
     public KitchenDashboardResponse getDashboard() {
         return dashboardService.getDashboardStats();
@@ -40,5 +42,13 @@ public class DashboardController {
             @RequestParam(required = false) Long hotelId
     ) {
         return dashboardService.getExpenseSummary(year, hotelId);
+    }
+
+    @GetMapping("/hotel-comparison")
+    public List<HotelMonthValue> getHotelComparison(
+            @RequestParam(defaultValue = "#{T(java.time.Year).now().getValue()}") int year,
+            @RequestParam(defaultValue = "profit") String metric
+    ) {
+        return hotelComparisonService.getComparison(year, metric);
     }
 }
