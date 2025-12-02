@@ -1,5 +1,6 @@
 package headway.backend.service.impl;
 
+import headway.backend.dto.dashboard.DashboardKitchenSummary;
 import headway.backend.dto.kitchen.KitchenSaleRequest;
 import headway.backend.dto.kitchen.KitchenSaleResponse;
 import headway.backend.entity.kitchen.KitchenItem;
@@ -169,6 +170,24 @@ public class KitchenSaleServiceImpl implements KitchenSaleService {
         }
 
         return sales.stream().map(this::mapToResponse).toList();
+    }
+
+    /**
+     * @param year
+     * @param hotelId
+     * @return
+     */
+    @Override
+    public DashboardKitchenSummary getSummary(int year, Long hotelId) {
+        List<KitchenSale> list = (hotelId == null)
+                ? saleRepo.findByYear(year)
+                : saleRepo.findByYearAndHotel(year, hotelId);
+
+        double total = list.stream()
+                .mapToDouble(s -> s.getGrandTotal() != null ? s.getGrandTotal() : 0D)
+                .sum();
+
+        return new DashboardKitchenSummary(total);
     }
 
     private KitchenSaleResponse mapToResponse(KitchenSale sale) {

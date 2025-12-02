@@ -10,6 +10,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @EnableJpaRepositories
 @Repository
@@ -30,4 +31,9 @@ public interface RoomIncomeRepository extends JpaRepository<RoomIncome,Long> {
             @Param("endDate") LocalDateTime endDate,
             Pageable pageable
     );
+    @Query("SELECT r FROM RoomIncome r WHERE YEAR(r.timestamp) = :year")
+    List<RoomIncome> findByYear(int year);
+
+    @Query("SELECT r FROM RoomIncome r WHERE YEAR(r.timestamp) = :year AND r.hotel_name = :hotelName")
+    List<RoomIncome> findByYearAndHotel(int year, String hotelName);
 }

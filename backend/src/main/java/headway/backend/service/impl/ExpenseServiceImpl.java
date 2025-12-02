@@ -1,5 +1,6 @@
 package headway.backend.service.impl;
 
+import headway.backend.dto.dashboard.ExpenseSummary;
 import headway.backend.dto.expense.ExpenseCategoryDTO;
 import headway.backend.dto.expense.ExpenseDTO;
 import headway.backend.dto.expense.SupplierDTO;
@@ -233,6 +234,24 @@ public class ExpenseServiceImpl implements ExpenseService {
                 .toList();
 
         return new PageImpl<>(filteredList, pageable, filteredList.size());
+    }
+
+    /**
+     * @param year
+     * @param hotelId
+     * @return
+     */
+    @Override
+    public ExpenseSummary getSummary(int year, Long hotelId) {
+        List<Expense> list = (hotelId == null)
+                ? expenseRepository.findByYear(year)
+                : expenseRepository.findByYearAndHotel(year, hotelId);
+
+        double total = list.stream()
+                .mapToDouble(e -> e.getAmount() != null ? e.getAmount().doubleValue() : 0)
+                .sum();
+
+        return new ExpenseSummary(total);
     }
 
     private ExpenseCategoryDTO findCategoryDTO(ExpenseCategory category) {

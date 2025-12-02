@@ -1,5 +1,6 @@
 package headway.backend.service;
 
+import headway.backend.dto.dashboard.DashboardRoomSummary;
 import headway.backend.dto.stays.BookingSourceRequest;
 import headway.backend.dto.stays.HotelRequest;
 import headway.backend.dto.stays.RoomIncomeRequest;
@@ -21,5 +22,6 @@ public interface StaysService {
     Page<RoomIncome> getAllRoomIncomeData(int page, int size, String hotel_name, String startDate, String endDate);
     RoomIncome createNewIncomeEntry(RoomIncomeRequest request);
     RoomIncome updateIncomeEntry(RoomIncomeRequest request,Long incomeId);
+    public DashboardRoomSummary getSummary(int year, String hotelName);
 
 }

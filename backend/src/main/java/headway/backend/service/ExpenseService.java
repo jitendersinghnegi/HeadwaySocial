@@ -1,5 +1,6 @@
 package headway.backend.service;
 
+import headway.backend.dto.dashboard.ExpenseSummary;
 import headway.backend.dto.expense.ExpenseCategoryDTO;
 import headway.backend.dto.expense.ExpenseDTO;
 import headway.backend.dto.expense.SupplierDTO;
@@ -36,4 +37,6 @@ public interface ExpenseService {
                                            Long categoryId,
                                            String from,
                                            String to);
+
+    public ExpenseSummary getSummary(int year, Long hotelId);
 }

@@ -1,5 +1,6 @@
 package headway.backend.service.impl;
 
+import headway.backend.dto.dashboard.DashboardRoomSummary;
 import headway.backend.dto.stays.BookingSourceRequest;
 import headway.backend.dto.stays.HotelRequest;
 import headway.backend.dto.stays.RoomIncomeRequest;
@@ -244,6 +245,35 @@ public class StaysServiceImpl implements StaysService {
         }
 
     }
+
+    /**
+     * @param year
+     * @param hotelName
+     * @return
+     */
+    @Override
+    public DashboardRoomSummary getSummary(int year, String hotelName) {
+        List<RoomIncome> list = (hotelName == null || hotelName.isBlank())
+                ? roomIncomeRepository.findByYear(year)
+                : roomIncomeRepository.findByYearAndHotel(year, hotelName);
+
+        BigDecimal totalSales = BigDecimal.ZERO;
+        BigDecimal totalCommission = BigDecimal.ZERO;
+        BigDecimal totalRevenue = BigDecimal.ZERO;
+
+        for (RoomIncome r : list) {
+            totalSales = totalSales.add(r.getAmount() != null ? r.getAmount() : BigDecimal.ZERO);
+            totalCommission = totalCommission.add(r.getCommission() != null ? r.getCommission() : BigDecimal.ZERO);
+            totalRevenue = totalRevenue.add(r.getRevenue() != null ? r.getRevenue() : BigDecimal.ZERO);
+        }
+
+        return new DashboardRoomSummary(
+                totalSales.doubleValue(),
+                totalCommission.doubleValue(),
+                totalRevenue.doubleValue()
+        );
+    }
+
     private BigDecimal getCommissionAmount(String bookingSource,BigDecimal amount){
         BookingSource bookingSourcePresent = bookingSourceRepository.findBySourcename(bookingSource);
         Long commissionRate = bookingSourcePresent.getCommision();

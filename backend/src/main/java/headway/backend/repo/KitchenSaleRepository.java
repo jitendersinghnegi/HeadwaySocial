@@ -51,4 +51,10 @@ public interface KitchenSaleRepository extends JpaRepository<KitchenSale, Long> 
 
     List<KitchenSale> findByCreatedAtBetween(LocalDateTime from, LocalDateTime to);
     List<KitchenSale> findByHotelIdAndCreatedAtBetween(Long hotelId, LocalDateTime from, LocalDateTime to);
+
+    @Query("SELECT k FROM KitchenSale k WHERE YEAR(k.createdAt) = :year")
+    List<KitchenSale> findByYear(int year);
+
+    @Query("SELECT k FROM KitchenSale k WHERE YEAR(k.createdAt) = :year AND k.hotelId = :hotelId")
+    List<KitchenSale> findByYearAndHotel(int year, Long hotelId);
 }

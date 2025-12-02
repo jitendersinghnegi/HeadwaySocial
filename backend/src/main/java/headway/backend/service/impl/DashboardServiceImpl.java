@@ -1,12 +1,12 @@
 package headway.backend.service.impl;
 
-import headway.backend.dto.dashboard.DailyRevenueDTO;
-import headway.backend.dto.dashboard.HotelRevenueDTO;
-import headway.backend.dto.dashboard.KitchenDashboardResponse;
-import headway.backend.dto.dashboard.TopItemDTO;
+import headway.backend.dto.dashboard.*;
 import headway.backend.repo.KitchenSaleItemRepository;
 import headway.backend.repo.KitchenSaleRepository;
 import headway.backend.service.DashboardService;
+import headway.backend.service.ExpenseService;
+import headway.backend.service.KitchenSaleService;
+import headway.backend.service.StaysService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -26,6 +26,12 @@ public class DashboardServiceImpl implements DashboardService {
     private final KitchenSaleRepository saleRepo;
     @Autowired
     private final KitchenSaleItemRepository itemRepo;
+    @Autowired
+    private final StaysService stayService;
+    @Autowired
+    private final KitchenSaleService kitchenSaleService;
+    @Autowired
+    private final ExpenseService expenseService;
     @Override
     public KitchenDashboardResponse getDashboardStats() { double totalRevenue = Optional.ofNullable(saleRepo.sumGrandTotal()).orElse(0.0);
         double todayRevenue = Optional.ofNullable(saleRepo.sumGrandTotalFor(LocalDate.now())).orElse(0.0);
@@ -58,4 +64,35 @@ public class DashboardServiceImpl implements DashboardService {
                 topItems
         );
     }
+
+    /**
+     * @param year
+     * @param hotelName
+     * @return
+     */
+    @Override
+    public DashboardRoomSummary getRoomSummary(int year, String hotelName) {
+        return stayService.getSummary(year,hotelName);
+    }
+
+    /**
+     * @param year
+     * @param hotelId
+     * @return
+     */
+    @Override
+    public DashboardKitchenSummary getKitchenSummary(int year, Long hotelId) {
+        return kitchenSaleService.getSummary(year,hotelId);
+    }
+
+    /**
+     * @param year
+     * @param hotelId
+     * @return
+     */
+    @Override
+    public ExpenseSummary getExpenseSummary(int year, Long hotelId) {
+        return expenseService.getSummary(year,hotelId);
+    }
+
 }
