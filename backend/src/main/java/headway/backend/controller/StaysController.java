@@ -2,10 +2,7 @@ package headway.backend.controller;
 
 import headway.backend.dto.CategoryDTO;
 import headway.backend.dto.UserResponseDTO;
-import headway.backend.dto.stays.BookingSourceRequest;
-import headway.backend.dto.stays.BookingSourceResponse;
-import headway.backend.dto.stays.HotelRequest;
-import headway.backend.dto.stays.RoomIncomeRequest;
+import headway.backend.dto.stays.*;
 import headway.backend.entity.category.Category;
 import headway.backend.entity.stays.BookingSource;
 import headway.backend.entity.stays.Hotel;
@@ -58,15 +55,15 @@ public class StaysController {
         return ResponseEntity.ok(staysService.updateHotelDetails(request,hotelId));
         }
     @GetMapping("/room-sales")
-    public ResponseEntity<Page<RoomIncome>>  getAll(
+    public ResponseEntity<Page<RoomIncomeResponse>>  getAll(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
-            @RequestParam(required = false) String hotelName,
+            @RequestParam(required = false) Long hotelId,
             @RequestParam(required = false) String startDate,
             @RequestParam(required = false) String endDate
     ){
 
-        Page<RoomIncome> roomIncomeList = staysService.getAllRoomIncomeData(page,size,hotelName,startDate,endDate);
+        Page<RoomIncomeResponse> roomIncomeList = staysService.getAllRoomIncomeData(page,size,hotelId,startDate,endDate);
         return ResponseEntity.ok(roomIncomeList);
 
     }

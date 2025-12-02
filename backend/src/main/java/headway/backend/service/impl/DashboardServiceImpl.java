@@ -71,8 +71,8 @@ public class DashboardServiceImpl implements DashboardService {
      * @return
      */
     @Override
-    public DashboardRoomSummary getRoomSummary(int year, String hotelName) {
-        return stayService.getSummary(year,hotelName);
+    public DashboardRoomSummary getRoomSummary(int year, Long hotelId) {
+        return stayService.getSummary(year,hotelId);
     }
 
     /**

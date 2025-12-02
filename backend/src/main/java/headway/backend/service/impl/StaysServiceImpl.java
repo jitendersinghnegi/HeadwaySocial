@@ -4,6 +4,7 @@ import headway.backend.dto.dashboard.DashboardRoomSummary;
 import headway.backend.dto.stays.BookingSourceRequest;
 import headway.backend.dto.stays.HotelRequest;
 import headway.backend.dto.stays.RoomIncomeRequest;
+import headway.backend.dto.stays.RoomIncomeResponse;
 import headway.backend.entity.stays.BookingSource;
 import headway.backend.entity.stays.Hotel;
 import headway.backend.entity.stays.RoomIncome;
@@ -158,7 +159,7 @@ public class StaysServiceImpl implements StaysService {
      * @return
      */
     @Override
-    public Page<RoomIncome> getAllRoomIncomeData(int page, int size, String hotel_name, String startDate, String endDate) {
+    public Page<RoomIncomeResponse> getAllRoomIncomeData(int page, int size, Long hotelId, String startDate, String endDate) {
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "timestamp"));
         LocalDateTime start = (startDate != null && !startDate.isEmpty())
                 ? LocalDate.parse(startDate).atStartOfDay()
@@ -166,7 +167,27 @@ public class StaysServiceImpl implements StaysService {
         LocalDateTime end = (endDate != null && !endDate.isEmpty())
                 ? LocalDate.parse(endDate).atTime(23, 59, 59)
                 : LocalDateTime.now();
-        return roomIncomeRepository.findByFilters(hotel_name,start,end,pageable);
+        Page<RoomIncome> pageData =  roomIncomeRepository.findByFilters(hotelId,start,end,pageable);
+        return pageData.map(r -> new RoomIncomeResponse(
+                r.getId(),
+                r.getTimestamp(),
+                r.getArrival_date(),
+                r.getDeparture_date(),
+                r.getRoom_no(),
+                r.getGuest_name(),
+                r.getPax(),
+                r.isCash(),
+                r.isUpi(),
+                r.isDebit_card(),
+                r.isCredit_card(),
+                r.getBooking_source(),
+                r.getPayment_status(),
+                r.getAmount(),
+                r.getCommission(),
+                r.getRevenue(),
+                (r.getHotel() != null ? r.getHotel().getId() : null),
+                (r.getHotel() != null ? r.getHotel().getName() : null)
+        ));
     }
 
     /**
@@ -175,6 +196,8 @@ public class StaysServiceImpl implements StaysService {
      */
     @Override
     public RoomIncome createNewIncomeEntry(RoomIncomeRequest request) {
+        Hotel hotel = hotelRepository.findById(request.getHotelId())
+                .orElseThrow(() -> new RuntimeException("Hotel not found"));
         RoomIncome roomIncome = new RoomIncome();
         BigDecimal commissionAmount = BigDecimal.valueOf(0);
         roomIncome.setCash(request.isCash());
@@ -188,7 +211,7 @@ public class StaysServiceImpl implements StaysService {
         roomIncome.setTimestamp(LocalDateTime.now());
         roomIncome.setDeparture_date(request.getDeparture_date());
         roomIncome.setGuest_name(request.getGuest_name());
-        roomIncome.setHotel_name(request.getHotel_name());
+        roomIncome.setHotel(hotel);
         roomIncome.setPayment_status(request.getPayment_status());
         roomIncome.setAmount(request.getAmount());
         commissionAmount = getCommissionAmount(request.getBooking_source(),request.getAmount());
@@ -199,7 +222,7 @@ public class StaysServiceImpl implements StaysService {
                 "RoomIncome",
                 savedRoomIncome.getId().toString(),
                 "Created",
-                "Created   Room Income for Room No : "+ savedRoomIncome.getRoom_no() + "Guest Name : "+ savedRoomIncome.getGuest_name() + " for Hotel "+savedRoomIncome.getHotel_name()
+                "Created   Room Income for Room No : "+ savedRoomIncome.getRoom_no() + "Guest Name : "+ savedRoomIncome.getGuest_name() + " for Hotel "+savedRoomIncome.getHotel().getName()
         );
         return savedRoomIncome;
     }
@@ -211,6 +234,8 @@ public class StaysServiceImpl implements StaysService {
      */
     @Override
     public RoomIncome updateIncomeEntry(RoomIncomeRequest request, Long incomeId) {
+        Hotel hotel = hotelRepository.findById(request.getHotelId())
+                .orElseThrow(() -> new RuntimeException("Hotel not found"));
         BigDecimal commissionAmount = BigDecimal.valueOf(0);
         Optional<RoomIncome> optionalRoomIncome = roomIncomeRepository.findById(incomeId);
         if(optionalRoomIncome.isPresent()){
@@ -226,7 +251,7 @@ public class StaysServiceImpl implements StaysService {
             existingRoomIncomeEntry.setTimestamp(LocalDateTime.now());
             existingRoomIncomeEntry.setDeparture_date(request.getDeparture_date());
             existingRoomIncomeEntry.setGuest_name(request.getGuest_name());
-            existingRoomIncomeEntry.setHotel_name(request.getHotel_name());
+            existingRoomIncomeEntry.setHotel(hotel);
             existingRoomIncomeEntry.setPayment_status(request.getPayment_status());
             existingRoomIncomeEntry.setAmount(request.getAmount());
             commissionAmount = getCommissionAmount(request.getBooking_source(),request.getAmount());
@@ -237,7 +262,7 @@ public class StaysServiceImpl implements StaysService {
                     "RoomIncome",
                     updatedRoomIncome.getId().toString(),
                     "Updated",
-                    "Updated Room Income for Room No : "+ updatedRoomIncome.getRoom_no() + "Guest Name : "+ updatedRoomIncome.getGuest_name() + " for Hotel "+updatedRoomIncome.getHotel_name()
+                    "Updated Room Income for Room No : "+ updatedRoomIncome.getRoom_no() + "Guest Name : "+ updatedRoomIncome.getGuest_name() + " for Hotel "+updatedRoomIncome.getHotel().getName()
             );
             return updatedRoomIncome;
         }else{
@@ -248,14 +273,14 @@ public class StaysServiceImpl implements StaysService {
 
     /**
      * @param year
-     * @param hotelName
+     * @param hotelId
      * @return
      */
     @Override
-    public DashboardRoomSummary getSummary(int year, String hotelName) {
-        List<RoomIncome> list = (hotelName == null || hotelName.isBlank())
+    public DashboardRoomSummary getSummary(int year, Long hotelId) {
+        List<RoomIncome> list = (hotelId == null)
                 ? roomIncomeRepository.findByYear(year)
-                : roomIncomeRepository.findByYearAndHotel(year, hotelName);
+                : roomIncomeRepository.findByYearAndHotel(year, hotelId);
 
         BigDecimal totalSales = BigDecimal.ZERO;
         BigDecimal totalCommission = BigDecimal.ZERO;

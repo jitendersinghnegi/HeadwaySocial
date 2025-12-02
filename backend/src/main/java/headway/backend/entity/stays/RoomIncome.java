@@ -43,8 +43,9 @@ public class RoomIncome {
     private boolean credit_card;
     @Column(name="booking_source")
     private String booking_source;
-    @Column(name="hotel_name")
-    private String hotel_name;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "hotel_id", nullable = false)
+    private Hotel hotel;
     @Column(name="payment_status")
     private String payment_status;
     @Column(precision = 18, scale = 2, name="amount")

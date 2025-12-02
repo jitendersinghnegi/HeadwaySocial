@@ -16,17 +16,17 @@ import java.util.List;
 @Repository
 public interface RoomIncomeRepository extends JpaRepository<RoomIncome,Long> {
     @Query("""
-    SELECT a FROM RoomIncome a
-    WHERE (:hotel_name IS NULL OR :hotel_name = '' OR a.hotel_name = :hotel_name)
-    AND (
-        COALESCE(:startDate, :endDate) IS NULL
-        OR a.timestamp BETWEEN COALESCE(:startDate, a.timestamp)
-                           AND COALESCE(:endDate, a.timestamp)
-    )
-    ORDER BY a.timestamp DESC
+SELECT a FROM RoomIncome a
+WHERE (:hotelId IS NULL OR a.hotel.id = :hotelId)
+AND (
+    COALESCE(:startDate, :endDate) IS NULL
+    OR a.timestamp BETWEEN COALESCE(:startDate, a.timestamp)
+                       AND COALESCE(:endDate, a.timestamp)
+)
+ORDER BY a.timestamp DESC
 """)
     Page<RoomIncome> findByFilters(
-            @Param("hotel_name") String hotel_name,
+            @Param("hotelId") Long hotelId,
             @Param("startDate") LocalDateTime startDate,
             @Param("endDate") LocalDateTime endDate,
             Pageable pageable
@@ -34,6 +34,6 @@ public interface RoomIncomeRepository extends JpaRepository<RoomIncome,Long> {
     @Query("SELECT r FROM RoomIncome r WHERE YEAR(r.timestamp) = :year")
     List<RoomIncome> findByYear(int year);
 
-    @Query("SELECT r FROM RoomIncome r WHERE YEAR(r.timestamp) = :year AND r.hotel_name = :hotelName")
-    List<RoomIncome> findByYearAndHotel(int year, String hotelName);
+    @Query("SELECT r FROM RoomIncome r WHERE YEAR(r.timestamp) = :year AND r.hotel.id = :hotelId")
+    List<RoomIncome> findByYearAndHotel(int year, Long hotelId);
 }

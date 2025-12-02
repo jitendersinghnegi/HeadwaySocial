@@ -29,9 +29,9 @@ public class DashboardController {
     @GetMapping("/stays/summary")
     public DashboardRoomSummary getRoomSummary(
             @RequestParam(defaultValue = "#{T(java.time.Year).now().getValue()}") int year,
-            @RequestParam(required = false) String hotelName
+            @RequestParam(required = false) Long hotelId
     ) {
-        return dashboardService.getRoomSummary(year, hotelName);
+        return dashboardService.getRoomSummary(year, hotelId);
     }
 
     @GetMapping("/expense/summary")
