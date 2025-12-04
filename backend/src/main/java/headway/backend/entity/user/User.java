@@ -25,6 +25,11 @@ public class User{
     @NotNull(message = "Email cannot be null")
     @NotBlank(message = "Email cannot be blank")
     private String email;
+    @Column(name = "reset_token")
+    private String resetToken;
+
+    @Column(name = "reset_token_expiry")
+    private Date resetTokenExpiry;
 
     @Column(nullable = false,name="password")
     private String password;

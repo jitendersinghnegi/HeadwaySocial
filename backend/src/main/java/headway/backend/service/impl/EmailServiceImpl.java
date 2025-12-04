@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.ClassPathResource;
+import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
@@ -88,5 +89,23 @@ public class EmailServiceImpl implements EmailService {
         } catch (Exception e) {
             throw new RuntimeException("Failed to send invoice email", e);
         }
+    }
+
+    /**
+     * @param to
+     * @param subject
+     * @param text
+     */
+    @Override
+    public void sendForgotPasswordEmail(String to, String subject, String text) {
+        SimpleMailMessage message = new SimpleMailMessage();
+        message.setTo(to);
+        message.setSubject(subject);
+        message.setText(text);
+
+        // Optional: Set FROM (required by some SMTP servers)
+        message.setFrom(mailFrom);
+
+        mailSender.send(message);
     }
 }

@@ -12,7 +12,9 @@ import headway.backend.repo.UserRepository;
 import headway.backend.security.jwt.JwtUtils;
 import headway.backend.security.services.UserDetailsImpl;
 import headway.backend.service.AuditService;
+import headway.backend.service.EmailService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseCookie;
@@ -48,6 +50,12 @@ public class AuthController {
 
     @Autowired
     AuditService auditService;
+
+    @Autowired
+    EmailService emailService;
+
+    @Value("${app.frontend-url}")
+    private String frontendUrl;
 
     @PostMapping("/signin")
     public ResponseEntity<?> authenticateUser(@RequestBody LoginRequestDTO loginRequest) {
@@ -106,15 +114,70 @@ public class AuthController {
                         cookie.toString())
                 .body(new MessageResponse("You've been signed out!"));
     }
-/*
-    @GetMapping("/users")
-    public ResponseEntity<?> getAllUsers(){
-        List<UserDetailsImpl> users = userRepository.findAll().stream().map(user ->UserDetailsImpl.build(user)).toList();
 
-        return ResponseEntity.ok().body(users);
+    @PostMapping("/forgot-password")
+    public ResponseEntity<?> forgotPassword(@RequestBody Map<String, String> request) {
+        String email = request.get("email");
+
+        Optional<User> userOpt = userRepository.findByEmail(email);
+        if (userOpt.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body("No user found with this email.");
+        }
+
+        User user = userOpt.get();
+        String token = UUID.randomUUID().toString();
+        user.setResetToken(token);
+        user.setResetTokenExpiry(new Date(System.currentTimeMillis() + 1000 * 60 * 30)); // 30 min expiry
+        userRepository.save(user);
+
+        String resetUrl = frontendUrl + "/en/pms/reset-password?token=" + token;
+
+        emailService.sendForgotPasswordEmail(
+                user.getEmail(),
+                "Password Reset",
+                "Click the link to reset your password:\n\n" + resetUrl
+        );
+
+        return ResponseEntity.ok("Reset link sent to email.");
     }
 
- */
+    @PostMapping("/reset-password")
+    public ResponseEntity<?> resetPassword(@RequestBody Map<String, String> request) {
 
+        String token = request.get("token");
+        String newPassword = request.get("newPassword");
+
+        User user = userRepository.findByResetToken(token).orElse(null);
+        if (user == null) {
+            return ResponseEntity
+                    .badRequest()
+                    .body(Map.of(
+                            "success", false,
+                            "message", "Invalid reset token."
+                    ));
+        }
+
+        if (user.getResetTokenExpiry().before(new Date())) {
+            return ResponseEntity
+                    .badRequest()
+                    .body(Map.of(
+                            "success", false,
+                            "message", "Reset link has expired."
+                    ));
+        }
+
+        user.setPassword(encoder.encode(newPassword));
+        user.setResetToken(null);
+        user.setResetTokenExpiry(null);
+        userRepository.save(user);
+
+        return ResponseEntity.ok(
+                Map.of(
+                        "success", true,
+                        "message", "Password successfully updated."
+                )
+        );
+    }
 
 }

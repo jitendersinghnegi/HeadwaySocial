@@ -50,6 +50,9 @@ expense:
   bills:
     upload-dir: uploads/bills
 
+app:
+  frontend-url: http://localhost:3000
+
 
 
 

@@ -7,4 +7,5 @@ import java.util.List;
 
 public interface EmailService {
     public void sendKitchenBillEmail(KitchenSale sale, List<KitchenSaleItem> items);
+    public void sendForgotPasswordEmail(String to, String subject, String text);
 }

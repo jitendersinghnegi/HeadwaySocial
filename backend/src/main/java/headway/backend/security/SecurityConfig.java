@@ -105,6 +105,8 @@ public class SecurityConfig {
                                 "/public/**",
                                 "/api/v1/auth/signin",
                                 "/api/v1/auth/logout",
+                                "/api/v1/auth/forgot-password",
+                                "api/v1/auth/reset-password",
                                 "/api/public/v1/categories",
                                 "/api/admin/v1/categories/**",
                                 "/api/webshop/contact"
