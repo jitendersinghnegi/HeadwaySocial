@@ -1,0 +1,311 @@
+package headway.backend.service.impl;
+
+import headway.backend.dto.dashboard.DashboardRoomSummary;
+import headway.backend.dto.stays.BookingSourceRequest;
+import headway.backend.dto.stays.HotelRequest;
+import headway.backend.dto.stays.RoomIncomeRequest;
+import headway.backend.dto.stays.RoomIncomeResponse;
+import headway.backend.entity.stays.BookingSource;
+import headway.backend.entity.stays.Hotel;
+import headway.backend.entity.stays.RoomIncome;
+import headway.backend.exceptions.ResourceNotFoundException;
+import headway.backend.repo.BookingSourceRepository;
+import headway.backend.repo.HotelRepository;
+import headway.backend.repo.RoomIncomeRepository;
+import headway.backend.service.AuditService;
+import headway.backend.service.StaysService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.stereotype.Service;
+
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Optional;
+
+@Service
+public class StaysServiceImpl implements StaysService {
+    /**
+     * @return
+     */
+    @Autowired
+    AuditService auditService;
+    @Autowired
+    BookingSourceRepository bookingSourceRepository;
+
+    @Autowired
+    HotelRepository hotelRepository;
+    @Autowired
+    RoomIncomeRepository roomIncomeRepository;
+
+    @Override
+    public List<BookingSource> getAllBookingSources() {
+        return bookingSourceRepository.findAll();
+    }
+
+    /**
+     * @param bookingSource
+     * @return
+     */
+    @Override
+    public BookingSource createNew(BookingSourceRequest bookingSource) {
+        BookingSource newBookingSource = new BookingSource();
+        newBookingSource.setSourcename(bookingSource.getSourcename());
+        newBookingSource.setBankaccountno(bookingSource.getBankaccountno());
+        newBookingSource.setCommision(bookingSource.getCommision());
+        BookingSource createdBookingSource = bookingSourceRepository.save(newBookingSource);
+        auditService.recordAction(
+                "BookingSource",
+                createdBookingSource.getSourceid().toString(),
+                "Create",
+                "Created Booking Source : "+ createdBookingSource.getSourcename()
+        );
+        return createdBookingSource;
+
+    }
+
+    /**
+     * @param bookingSource
+     * @param bookingSourceId
+     * @return
+     */
+    @Override
+    public BookingSource updateBookingSource(BookingSourceRequest bookingSource, Long bookingSourceId) {
+
+       Optional<BookingSource> optionalBookingSource = bookingSourceRepository.findById(bookingSourceId);
+       if(optionalBookingSource.isPresent()){
+           BookingSource existingBookingSource = optionalBookingSource.get();
+           existingBookingSource.setSourcename(bookingSource.getSourcename());
+           existingBookingSource.setBankaccountno(bookingSource.getBankaccountno());
+           existingBookingSource.setCommision(bookingSource.getCommision());
+           BookingSource updatedBookingSource = bookingSourceRepository.save(existingBookingSource);
+           auditService.recordAction(
+                   "BookingSource",
+                   updatedBookingSource.getSourceid().toString(),
+                   "Update",
+                   "updatedBookingSource Booking Source : "+ updatedBookingSource.getSourcename()
+           );
+           return updatedBookingSource;
+       }else{
+           throw new ResourceNotFoundException("BookingSource","BookingSourceID",bookingSourceId);
+       }
+    }
+
+    /**
+     * @return
+     */
+    @Override
+    public List<Hotel> getAllHotels() {
+        return hotelRepository.findAll();
+    }
+
+    /**
+     * @param hotelRequest
+     * @return
+     */
+    @Override
+    public Hotel createNewHotel(HotelRequest hotelRequest) {
+        Hotel hotel = new Hotel();
+        hotel.setName(hotelRequest.getName());
+        hotel.setLease_amount(hotelRequest.getLease_amount());
+        hotel.setRooms(hotelRequest.getRooms());
+        hotel.setLongitude(hotelRequest.getLongitude());
+        hotel.setLatitude(hotelRequest.getLatitude());
+        Hotel createdHotel = hotelRepository.save(hotel);
+        auditService.recordAction(
+                "Hotel",
+                createdHotel.getId().toString(),
+                "Create",
+                "Created new  hotel : "+ createdHotel.getName()
+        );
+        return createdHotel;
+    }
+
+    /**
+     * @param request
+     * @param hotelId
+     * @return
+     */
+    @Override
+    public Hotel updateHotelDetails(HotelRequest request, Long hotelId) {
+       Optional<Hotel> optionalHotel = hotelRepository.findById(hotelId);
+       if(optionalHotel.isPresent()){
+           Hotel existingHotel = optionalHotel.get();
+           existingHotel.setLatitude(request.getLatitude());
+           existingHotel.setRooms(request.getRooms());
+           existingHotel.setName(request.getName());
+           existingHotel.setLongitude(request.getLongitude());
+           existingHotel.setLease_amount(request.getLease_amount());
+           Hotel updateHotel = hotelRepository.save(existingHotel);
+           auditService.recordAction(
+                   "Hotel",
+                   updateHotel.getId().toString(),
+                   "Updated",
+                   "Updated   hotel : "+ updateHotel.getName()
+           );
+           return updateHotel;
+
+       }else{
+           throw new ResourceNotFoundException("Hotel","HotelID",hotelId);
+       }
+
+    }
+
+    /**
+     * @return
+     */
+    @Override
+    public Page<RoomIncomeResponse> getAllRoomIncomeData(int page, int size, Long hotelId, String startDate, String endDate) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "timestamp"));
+        LocalDateTime start = (startDate != null && !startDate.isEmpty())
+                ? LocalDate.parse(startDate).atStartOfDay()
+                : LocalDateTime.of(2022,1,1,0,1);
+        LocalDateTime end = (endDate != null && !endDate.isEmpty())
+                ? LocalDate.parse(endDate).atTime(23, 59, 59)
+                : LocalDateTime.now();
+        Page<RoomIncome> pageData =  roomIncomeRepository.findByFilters(hotelId,start,end,pageable);
+        return pageData.map(r -> new RoomIncomeResponse(
+                r.getId(),
+                r.getTimestamp(),
+                r.getArrival_date(),
+                r.getDeparture_date(),
+                r.getRoom_no(),
+                r.getGuest_name(),
+                r.getPax(),
+                r.isCash(),
+                r.isUpi(),
+                r.isDebit_card(),
+                r.isCredit_card(),
+                r.getBooking_source(),
+                r.getPayment_status(),
+                r.getAmount(),
+                r.getCommission(),
+                r.getRevenue(),
+                (r.getHotel() != null ? r.getHotel().getId() : null),
+                (r.getHotel() != null ? r.getHotel().getName() : null)
+        ));
+    }
+
+    /**
+     * @param request
+     * @return
+     */
+    @Override
+    public RoomIncome createNewIncomeEntry(RoomIncomeRequest request) {
+        Hotel hotel = hotelRepository.findById(request.getHotelId())
+                .orElseThrow(() -> new RuntimeException("Hotel not found"));
+        RoomIncome roomIncome = new RoomIncome();
+        BigDecimal commissionAmount = BigDecimal.valueOf(0);
+        roomIncome.setCash(request.isCash());
+        roomIncome.setArrival_date(request.getArrival_date());
+        roomIncome.setBooking_source(request.getBooking_source());
+        roomIncome.setPax(request.getPax());
+        roomIncome.setRoom_no(request.getRoom_no());
+        roomIncome.setDebit_card(request.isDebit_card());
+        roomIncome.setCredit_card(request.isCredit_card());
+        roomIncome.setUpi(request.isUpi());
+        roomIncome.setTimestamp(LocalDateTime.now());
+        roomIncome.setDeparture_date(request.getDeparture_date());
+        roomIncome.setGuest_name(request.getGuest_name());
+        roomIncome.setHotel(hotel);
+        roomIncome.setPayment_status(request.getPayment_status());
+        roomIncome.setAmount(request.getAmount());
+        commissionAmount = getCommissionAmount(request.getBooking_source(),request.getAmount());
+        roomIncome.setCommission(commissionAmount);
+        roomIncome.setRevenue(request.getAmount().subtract(commissionAmount));
+        RoomIncome savedRoomIncome = roomIncomeRepository.save(roomIncome);
+        auditService.recordAction(
+                "RoomIncome",
+                savedRoomIncome.getId().toString(),
+                "Created",
+                "Created   Room Income for Room No : "+ savedRoomIncome.getRoom_no() + "Guest Name : "+ savedRoomIncome.getGuest_name() + " for Hotel "+savedRoomIncome.getHotel().getName()
+        );
+        return savedRoomIncome;
+    }
+
+    /**
+     * @param request
+     * @param incomeId
+     * @return
+     */
+    @Override
+    public RoomIncome updateIncomeEntry(RoomIncomeRequest request, Long incomeId) {
+        Hotel hotel = hotelRepository.findById(request.getHotelId())
+                .orElseThrow(() -> new RuntimeException("Hotel not found"));
+        BigDecimal commissionAmount = BigDecimal.valueOf(0);
+        Optional<RoomIncome> optionalRoomIncome = roomIncomeRepository.findById(incomeId);
+        if(optionalRoomIncome.isPresent()){
+            RoomIncome existingRoomIncomeEntry = optionalRoomIncome.get();
+            existingRoomIncomeEntry.setCash(request.isCash());
+            existingRoomIncomeEntry.setArrival_date(request.getArrival_date());
+            existingRoomIncomeEntry.setBooking_source(request.getBooking_source());
+            existingRoomIncomeEntry.setPax(request.getPax());
+            existingRoomIncomeEntry.setRoom_no(request.getRoom_no());
+            existingRoomIncomeEntry.setDebit_card(request.isDebit_card());
+            existingRoomIncomeEntry.setCredit_card(request.isCredit_card());
+            existingRoomIncomeEntry.setUpi(request.isUpi());
+            existingRoomIncomeEntry.setTimestamp(LocalDateTime.now());
+            existingRoomIncomeEntry.setDeparture_date(request.getDeparture_date());
+            existingRoomIncomeEntry.setGuest_name(request.getGuest_name());
+            existingRoomIncomeEntry.setHotel(hotel);
+            existingRoomIncomeEntry.setPayment_status(request.getPayment_status());
+            existingRoomIncomeEntry.setAmount(request.getAmount());
+            commissionAmount = getCommissionAmount(request.getBooking_source(),request.getAmount());
+            existingRoomIncomeEntry.setCommission(commissionAmount);
+            existingRoomIncomeEntry.setRevenue(request.getAmount().subtract(commissionAmount));
+            RoomIncome updatedRoomIncome = roomIncomeRepository.save(existingRoomIncomeEntry);
+            auditService.recordAction(
+                    "RoomIncome",
+                    updatedRoomIncome.getId().toString(),
+                    "Updated",
+                    "Updated Room Income for Room No : "+ updatedRoomIncome.getRoom_no() + "Guest Name : "+ updatedRoomIncome.getGuest_name() + " for Hotel "+updatedRoomIncome.getHotel().getName()
+            );
+            return updatedRoomIncome;
+        }else{
+            throw new ResourceNotFoundException("RoomIncome","RoomIncomeID",incomeId);
+        }
+
+    }
+
+    /**
+     * @param year
+     * @param hotelId
+     * @return
+     */
+    @Override
+    public DashboardRoomSummary getSummary(int year, Long hotelId) {
+        List<RoomIncome> list = (hotelId == null)
+                ? roomIncomeRepository.findByYear(year)
+                : roomIncomeRepository.findByYearAndHotel(year, hotelId);
+
+        BigDecimal totalSales = BigDecimal.ZERO;
+        BigDecimal totalCommission = BigDecimal.ZERO;
+        BigDecimal totalRevenue = BigDecimal.ZERO;
+
+        for (RoomIncome r : list) {
+            totalSales = totalSales.add(r.getAmount() != null ? r.getAmount() : BigDecimal.ZERO);
+            totalCommission = totalCommission.add(r.getCommission() != null ? r.getCommission() : BigDecimal.ZERO);
+            totalRevenue = totalRevenue.add(r.getRevenue() != null ? r.getRevenue() : BigDecimal.ZERO);
+        }
+
+        return new DashboardRoomSummary(
+                totalSales.doubleValue(),
+                totalCommission.doubleValue(),
+                totalRevenue.doubleValue()
+        );
+    }
+
+    private BigDecimal getCommissionAmount(String bookingSource,BigDecimal amount){
+        BookingSource bookingSourcePresent = bookingSourceRepository.findBySourcename(bookingSource);
+        Long commissionRate = bookingSourcePresent.getCommision();
+        BigDecimal commissionRateBD = BigDecimal.valueOf(commissionRate)
+                .divide(BigDecimal.valueOf(100));
+        return amount.multiply(commissionRateBD);
+
+
+    }
+}

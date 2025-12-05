@@ -19,6 +19,42 @@ spring:
         dialect: org.hibernate.dialect.PostgreSQLDialect
         format_sql: true
         show_sql: true
+  mail:
+    host: localhost
+    port: 1052
+    username: abc@gmail.com
+    password: papadapa
+    properties:
+      mail:
+        smtp:
+          auth: false
+          starttls:
+            enable: false
+contact:
+  notify:
+    to: info@headwaysocial.com
+
+logging:
+  level:
+    org.springframework: DEBUG
+    org.springframework.security: DEBUG
+    headway.backend: DEBUG
+
+jwt:
+  jwtSecret: headwaySecretKey82000306batatawadatamatar123123123sdfsdfsdfsd
+  jwtExpirationInMilliSeconds: 3600000
+  jwtCookieName : Shaktiman
+
+
+expense:
+  bills:
+    upload-dir: uploads/bills
+
+app:
+  frontend-url: http://localhost:3000
+
+
+
 
 
 

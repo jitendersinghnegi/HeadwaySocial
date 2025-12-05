@@ -1,7 +1,13 @@
 package headway.backend.service;
 
-import headway.backend.dto.UserDTO;
+import headway.backend.dto.SignupRequestDTO;
+import headway.backend.dto.UserResponseDTO;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.RequestBody;
+
+import java.util.List;
 
 public interface UserService {
-    String registerUser(UserDTO userDTO);
+    List<UserResponseDTO> getAllUsers();
+    public ResponseEntity<?> registerUser(@RequestBody SignupRequestDTO registerRequest);
 }
