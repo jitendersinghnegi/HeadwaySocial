@@ -18,4 +18,10 @@ public interface ExpenseRepository extends JpaRepository<Expense, Long> {
 
     @Query("SELECT e FROM Expense e WHERE YEAR(e.date) = :year AND e.hotel.id = :hotelId")
     List<Expense> findByYearAndHotel(int year, Long hotelId);
+
+    @Query("SELECT COALESCE(SUM(e.amount), 0) FROM Expense e WHERE YEAR(e.date) = :year AND e.paymentMethod = 'CASH'")
+    double getTotalCashExpenses(int year);
+
+    @Query("SELECT COALESCE(SUM(e.amount),0) FROM Expense e WHERE YEAR(e.date) = :year AND e.hotel.id = :hotelId AND e.paymentMethod = 'CASH'")
+    double getCashExpensesByHotel(int year , Long hotelId);
 }

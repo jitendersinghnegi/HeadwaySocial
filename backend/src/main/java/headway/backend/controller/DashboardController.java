@@ -51,4 +51,9 @@ public class DashboardController {
     ) {
         return hotelComparisonService.getComparison(year, metric);
     }
+
+    @GetMapping("/cash-in-hand")
+    public CashInHandResponse getCashInHand(@RequestParam(defaultValue = "#{T(java.time.Year).now().getValue()}") int year) {
+        return dashboardService.getCashInHand(year);
+    }
 }

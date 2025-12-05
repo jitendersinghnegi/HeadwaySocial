@@ -1,8 +1,7 @@
 package headway.backend.service.impl;
 
 import headway.backend.dto.dashboard.*;
-import headway.backend.repo.KitchenSaleItemRepository;
-import headway.backend.repo.KitchenSaleRepository;
+import headway.backend.repo.*;
 import headway.backend.service.DashboardService;
 import headway.backend.service.ExpenseService;
 import headway.backend.service.KitchenSaleService;
@@ -25,7 +24,13 @@ public class DashboardServiceImpl implements DashboardService {
     @Autowired
     private final KitchenSaleRepository saleRepo;
     @Autowired
+    private final RoomIncomeRepository roomIncomeRepo;
+    @Autowired
+    private final ExpenseRepository expenseRepo;
+    @Autowired
     private final KitchenSaleItemRepository itemRepo;
+    @Autowired
+    private final HotelRepository hotelRepo;
     @Autowired
     private final StaysService stayService;
     @Autowired
@@ -67,7 +72,7 @@ public class DashboardServiceImpl implements DashboardService {
 
     /**
      * @param year
-     * @param hotelName
+     * @param hotelId
      * @return
      */
     @Override
@@ -93,6 +98,25 @@ public class DashboardServiceImpl implements DashboardService {
     @Override
     public ExpenseSummary getExpenseSummary(int year, Long hotelId) {
         return expenseService.getSummary(year,hotelId);
+    }
+
+    /**
+     * @return
+     */
+    @Override
+    public CashInHandResponse getCashInHand(int year) {
+        double roomCash = roomIncomeRepo.getTotalRoomCashIncome(year);
+        double kitchenCash = saleRepo.getTotalKitchenCashIncome(year);
+        double expensesCash = expenseRepo.getTotalCashExpenses(year);
+        double totalCashInHand = (roomCash + kitchenCash) - expensesCash;
+        List<CashPerHotel> perHotel = hotelRepo.findAll().stream().map(h -> {
+            double r = roomIncomeRepo.getCashIncomeRoomByHotel(year,h.getId());
+            double k = saleRepo.getCashIncomeKitchenByHotel(year,h.getId());
+            double e = expenseRepo.getCashExpensesByHotel(year,h.getId());
+            return new CashPerHotel(h.getName(), (r + k) - e,r,k,e);
+        }).toList();
+
+        return new CashInHandResponse(totalCashInHand,roomCash,kitchenCash,expensesCash, perHotel);
     }
 
 }

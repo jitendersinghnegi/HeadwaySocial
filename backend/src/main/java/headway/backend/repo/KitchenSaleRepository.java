@@ -57,4 +57,10 @@ public interface KitchenSaleRepository extends JpaRepository<KitchenSale, Long> 
 
     @Query("SELECT k FROM KitchenSale k WHERE YEAR(k.createdAt) = :year AND k.hotelId = :hotelId")
     List<KitchenSale> findByYearAndHotel(int year, Long hotelId);
+
+    @Query("SELECT COALESCE(SUM(k.grandTotal), 0) FROM KitchenSale k WHERE YEAR(k.createdAt) = :year AND k.paymentMethod = 'CASH'")
+    double getTotalKitchenCashIncome(int year);
+
+    @Query("SELECT COALESCE(SUM(k.grandTotal),0) FROM KitchenSale k WHERE YEAR(k.createdAt) = :year AND k.hotelId = :hotelId AND k.paymentMethod = 'CASH'")
+    double getCashIncomeKitchenByHotel(int year, Long hotelId);
 }

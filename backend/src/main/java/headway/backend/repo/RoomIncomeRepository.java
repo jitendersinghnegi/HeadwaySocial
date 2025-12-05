@@ -36,4 +36,10 @@ ORDER BY a.timestamp DESC
 
     @Query("SELECT r FROM RoomIncome r WHERE YEAR(r.timestamp) = :year AND r.hotel.id = :hotelId")
     List<RoomIncome> findByYearAndHotel(int year, Long hotelId);
+
+    @Query("SELECT COALESCE(SUM(r.amount), 0) FROM RoomIncome r WHERE YEAR(r.timestamp) = :year AND r.cash = true ")
+    double getTotalRoomCashIncome(int year);
+
+    @Query("SELECT COALESCE(SUM(r.amount),0) FROM RoomIncome r WHERE YEAR(r.timestamp) = :year AND r.hotel.id = :hotelId AND r.cash = true")
+    double getCashIncomeRoomByHotel(int year, Long hotelId);
 }
